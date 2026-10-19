@@ -9,18 +9,17 @@ netCDF4, requests).
 | `ae_sj_model.py` | AE-SJ scoring function; reads the fitted model from `outputs/model/FINAL_AE_SJ_covadj_model.json`, written by `R/model.R` | - |
 | `aef_geobox.py` | 10 m grid snapped to a global 0,0 lattice, so every product aligns pixel for pixel | - |
 | `mi_aesj_annual_products.py` | AlphaEarth (source.coop) -> AE-SJ for every MI polygon and year 2018-2025; annual statistics and 2018-19 -> 2024-25 transitions, split into clearance and burn-coincident with the burn layer. `RUN_MODE = "all"` (national) or `"refresh_burnt"` (re-scores only polygons with burns, after `mi_dnbr_burn.py`) | ~15 h / ~15 min |
-| `s3_frp.py` | Downloads Sentinel-3 SLSTR active fires (the SL_2_FRP fire lists only) from the Copernicus Data Space to `../Burning/S3/sentinel3_frp_granules/` (login in `~/cdse.netrc`). Resumable | ~2 h |
-| `active_fires.py` | `python active_fires.py build` writes the single active-fire input `inputs/active_fires/active_fires_2018_2025.gpkg` from the FIRMS archives in `../Burning/` (VIIRS NOAA-20, Suomi NPP, NOAA-21, MODIS; TYPE 0, MODIS confidence >= 30) and the Sentinel-3 cache (class 1 = vegetation fire). Also the loader and the reach rule (750 m VIIRS, 1,000 m MODIS, 3 x 3 pixel square for SLSTR) used by the scripts below | minutes |
-| `mi_dnbr_burn.py map` | Groups FIRMS detections (not Sentinel-3) linked to MI polygons into fire events and maps each with Sentinel-2 dNBR (Planetary Computer); writes `mi_dnbr_burn_results/` (`MI_burns.csv`, events, patches, rasters). Resumes where it stopped | ~2 h |
+| `active_fires.py` | `python active_fires.py build` writes the single active-fire input `inputs/active_fires/active_fires_2018_2025.gpkg` from the FIRMS archives in `../Burning/` (VIIRS NOAA-20, Suomi NPP, NOAA-21, MODIS; TYPE 0, MODIS confidence >= 30). Also the loader and the reach rule (750 m VIIRS, 1,000 m MODIS) used by the scripts below | minutes |
+| `mi_dnbr_burn.py map` | Groups FIRMS detections linked to MI polygons into fire events and maps each with Sentinel-2 dNBR (Planetary Computer); writes `mi_dnbr_burn_results/` (`MI_burns.csv`, events, patches, rasters). Resumes where it stopped | ~2 h |
 | `mi_dnbr_burn.py reclassify` | Re-applies the thresholds to the saved event layers (after a threshold change) | minutes |
 | `mi_dnbr_burn.py aesj` | AE-SJ 2017-2025 of burnt vs never-burnt pixels per burn -> `MI_burn_aesj_trajectories.csv` | ~15 min |
-| `validation_registered_burns.py` | Burn detection tested against naturtiltak burning: `pool` (burns-verified pool from the grant register and its final reports -> `inputs/naturtiltak/tiltak_burns_verified.gpkg`), `map` (Sentinel-2 layers for every fire and a 5 km control, FIRMS and FIRMS + Sentinel-3), `thresholds`, `final`, `spatial` -> `validation_registered_burns/` | ~15 min |
+| `validation_registered_burns.py` | Burn detection tested against naturtiltak burning: `pool` (burns-verified pool from the grant register and its final reports -> `inputs/naturtiltak/tiltak_burns_verified.gpkg`), `map` (Sentinel-2 layers for every FIRMS fire and a 5 km control), `thresholds`, `final`, `spatial` -> `validation_registered_burns/` | ~15 min |
 | `diagnostics/burn_example_figure.py` | Report figure of one burn (`report/fig_burn_example_<fid>_<year>_<mode>.png`) | minutes |
 | `diagnostics/methodology_workflow_figure.py` | Methodology Figure 1 | seconds |
 | `diagnostics/wildfire_weather.py` | ERA5 weather before each probable wildfire (report discussion) | minutes |
 
-Order: `mi_aesj_annual_products.py` (all) once; `s3_frp.py` and
-`active_fires.py build` when the fire archives are updated; then
+Order: `mi_aesj_annual_products.py` (all) once; `active_fires.py build`
+when the FIRMS archives are updated; then
 `mi_dnbr_burn.py map`, `mi_aesj_annual_products.py` (refresh_burnt),
 `mi_dnbr_burn.py aesj`, `validation_registered_burns.py` (all stages) and
 `diagnostics/wildfire_weather.py`.

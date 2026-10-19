@@ -10,9 +10,9 @@
 # PYTHON STEPS (run before the R modules; environment: miniforge3 "openeo"):
 #   1. python/mi_aesj_annual_products.py   RUN_MODE = "all"
 #        national annual AE-SJ scores and pixel transitions (~15 h)
-#   2. python/s3_frp.py, then python/active_fires.py build
-#        only when the fire archives are updated: Sentinel-3 download, then
-#        the single active-fire input inputs/active_fires/active_fires_2018_2025.gpkg
+#   2. python/active_fires.py build
+#        only when the FIRMS archives are updated: the single active-fire
+#        input inputs/active_fires/active_fires_2018_2025.gpkg
 #   3. python/mi_dnbr_burn.py map
 #        FIRMS-triggered Sentinel-2 dNBR burn mapping (~1.5 h)
 #   4. python/mi_aesj_annual_products.py   RUN_MODE = "refresh_burnt"
@@ -21,7 +21,7 @@
 #   5. python/mi_dnbr_burn.py aesj
 #        AE-SJ before and after each burn, burnt vs never-burnt pixels
 #   6. python/validation_registered_burns.py   (Methodology Section 11.4)
-#        burns-verified naturtiltak pool, FIRMS and FIRMS + Sentinel-3
+#        burns-verified naturtiltak pool, FIRMS-triggered mapping
 #   7. python/diagnostics/wildfire_weather.py  (report discussion)
 #
 # Every source() after the first uses file.path(REPO_ROOT, ...), because

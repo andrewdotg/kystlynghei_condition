@@ -24,7 +24,7 @@ inputs/                     MI polygons, active-fire detections, Picea mask, nat
 R/model.R                   fits the AE-SJ axis -> outputs/model/ (model JSON read by python/ae_sj_model.py)
    |
 python/mi_aesj_annual_products.py      national AE-SJ scoring 2018-2025, pixel transitions
-python/s3_frp.py, active_fires.py      active fires: FIRMS (4 products) + Sentinel-3 -> one input
+python/active_fires.py                 active fires: FIRMS (4 products) -> one input
 python/mi_dnbr_burn.py                 burns: FIRMS-triggered Sentinel-2 dNBR mapping;
                                        AE-SJ response of burnt pixels
 python/validation_registered_burns.py  burn detection tested against naturtiltak burning
@@ -58,7 +58,7 @@ the AE-SJ score:
 
 1. FIRMS detections (VIIRS NOAA-20, Suomi NPP, NOAA-21; MODIS) within 750 m
    (VIIRS) or 1,000 m (MODIS) of an MI polygon, grouped into fire events
-   (2 km, 30 days). Sentinel-3 is not used here (validation only).
+   (2 km, 30 days).
 2. Per event: per-pixel median NBR/NDVI from Sentinel-2 L2A (Planetary
    Computer), same season of the previous year vs. 1-60 days after the first
    detection; SCL 4/5 clear pixels, eroded; tiles mosaicked per date.
@@ -83,7 +83,7 @@ burn-coincident only inside a probable wildfire, otherwise as clearance. Headlin
 **Validation.** Cross-validation and field agreement (`R/validation.R`,
 `R/modules/SJscore_validation.R`); registered clearance (`R/naturTiltak/`);
 registered burning (`python/validation_registered_burns.py`: burns-verified
-naturtiltak pool, FIRMS and FIRMS + Sentinel-3 triggers, 5 km controls).
+naturtiltak pool, FIRMS-triggered mapping, 5 km controls).
 
 ## Main outputs
 
