@@ -1,17 +1,52 @@
 ---
 title: "Remote sensed monitoring of coastal heathland (kystlynghei), 2018-2025"
-subtitle: "Successional trajectories and management effects across all mapped kystlynghei sites"
+subtitle: "Successional trajectories and management effects across all mapped kystlynghei sites [NO_KYST_001]"
+indicatorID: NO_KYST_001        # requested from ecRxiv; confirmed when assigned
+indicatorName: Kystlynghei succession (AE-SJ)
+verbatimName:
+  - Suksesjonsovervåking i kystlynghei
+folderName: NO_KYST_001         # filled in by ecRxiv during typesetting
+country: Norway
+continent: Europe
+Realm:
+  - Terrestrial (T)
+Biome:
+  - T3 Shrublands and shrubby woodlands biome
+Ecosystem:
+  - T3.3 Cool temp heathlands
+verbatimEcosystem: Kystlynghei
+yearAdded: 2026
+yearLastUpdate: 2026
+status: incomplete
+Version: "0.1.0"
+VersionComment: First beta version, for internal and ecRxiv review.
+url: https://github.com/NINAnor/ecRxiv/tree/main/indicators/NO_KYST_001   # set by ecRxiv during typesetting
+Precision: Site-level 95 % confidence intervals for the AE-SJ score, from the field-calibrated spread of each SJ class (Methodology Section 12).
+writtenLanguage: English (with a Norwegian summary)
 author:
   - name: Andrew Møller Gray
+    email: andrew.gray@nina.no
     affiliations:
-      - name: "Norwegian Institute for Nature Research (NINA)"
+      - id: nina
+        name: "Norwegian Institute for Nature Research (NINA)"
   - name: Geethen Singh
+    email: geethen.singh@nina.no
     affiliations:
-      - name: "Norwegian Institute for Nature Research (NINA)"
+      - ref: nina
   - name: Ida Marielle Mienna
+    email: ida.mienna@nina.no
     affiliations:
-      - name: "Norwegian Institute for Nature Research (NINA)"
-date: today
+      - ref: nina
+AuthorList: Gray, A. M., Singh, G. and Mienna, I. M.
+date: October 19, 2026
+data_availability: bronze
+code_reproducibility: bronze
+open_science_badge: bronze
+code-links:
+  - text: Add a review
+    icon: github
+    href: https://github.com/NINAnor/ecRxiv
+hide: FALSE
 lang: en-GB
 format:
   html:
@@ -495,11 +530,12 @@ PRIORITY_COLS <- c("Poor condition, open heath remaining" = "#C2185B",
                    "Good/moderate condition, overgrowing" = "#F2A900")
 ```
 
-::: {.callout-note collapse="true"}
-## Document status and version log
+> **Recommended citation**: Gray, A. M., Singh, G. and Mienna, I. M. 2026. Kystlynghei succession (AE-SJ) (ID: NO_KYST_001) v. 0.1.0. ecRxiv: <https://github.com/NINAnor/ecRxiv/tree/main/indicators/NO_KYST_001>
 
-Version 0 (draft for internal review), October 2026.
+::: {.callout-tip collapse="true"}
+## Log
 
+- 19 Oct. 2026 - Original PR (v0.1.0)
 :::
 
 # Sammendrag {.unnumbered}

@@ -40,6 +40,9 @@ report/data/
 report/kystlynghei_condition_report.html
 report/kystlynghei_condition_report_files/
 report/kystlynghei_condition_report_cache/
+# Condensed Word version of the report - kept local, not part of the repo
+report/kystlynghei_condition_report_short.*
+report/kystlynghei_condition_report_short_files/
 
 # R
 .Rhistory
@@ -67,3 +70,7 @@ inputs/
 # not the whole .vscode/ folder, in case shareable config (e.g. recommended
 # extensions) gets added there later.
 .vscode/settings.json
+
+# Banner graphic (not used in the report)
+python/diagnostics/banner_figure.py
+report/img/banner.png
