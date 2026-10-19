@@ -9,8 +9,9 @@ to assess trajectories, grazing, burning, scrub and tree clearance, and loss
 to development.
 
 **Report:** [Remote sensed monitoring of coastal heathland (kystlynghei),
-2018-2025](docs/index.html) (version 0, draft for internal review). The
-rendered report is `docs/index.html`; its source is
+2018-2025](https://andrewdotg.github.io/kystlynghei_condition/) (version 0,
+draft for internal review). The rendered report is `docs/index.html`, published
+with GitHub Pages; its source is
 `report/kystlynghei_condition_report.qmd`. After re-rendering, copy
 `report/kystlynghei_condition_report.html` to `docs/index.html`.
 
