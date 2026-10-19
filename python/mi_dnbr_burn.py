@@ -10,7 +10,7 @@ afterwards (stage 2).
 
 STAGE 1 - MAP BURNS (`python mi_dnbr_burn.py map`)
   1. Events. FIRMS detections (all four products, from the project's
-     active-fire input, active_fires.py; Sentinel-3 is not used here) linked
+     active-fire input, active_fires.py) linked
      to an MI polygon - within 750 m (VIIRS) or 1,000 m (MODIS) - are grouped into
      fire events: same year, within EVENT_LINK_M and EVENT_GAP_DAYS of each
      other. Each event is mapped once, over an area covering its detections
@@ -414,7 +414,7 @@ def process_event(ev: dict, det: gpd.GeoDataFrame, mi: gpd.GeoDataFrame, catalog
     eid, year = ev["event_id"], int(ev["year"])
     pts = det[det["event_id"] == eid]
     linked = mi[mi["fid"].isin([int(f) for f in str(ev["linked_fids"]).split(";") if f])]
-    reach = [active_fires.reach_shape(p, s, r) for p, s, r in zip(pts.geometry, pts["sensor"], pts["reach_m"])]
+    reach = [active_fires.reach_shape(p, r) for p, r in zip(pts.geometry, pts["reach_m"])]
     aoi = box(*gpd.GeoSeries(list(linked.geometry) + reach, crs=MI_CRS).total_bounds).buffer(100).bounds
     target = aoi_geobox(aoi, crs=MI_CRS, resolution=RESOLUTION_M, bbox_crs=MI_CRS)
     heath = rasterio.features.geometry_mask(list(linked.geometry), out_shape=target.shape,

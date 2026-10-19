@@ -4,8 +4,7 @@ registered in naturtiltak (Methodology Section 11.4).
 The burns are mapped the way mi_dnbr_burn.py maps MI sites - an active-fire
 detection gives the date, Sentinel-2 dNBR the burnt area - on polygons where
 burning was registered under the grant scheme for threatened nature types.
-Two triggers are tested: FIRMS alone (as used for the MI screening) and
-FIRMS plus Sentinel-3 SLSTR (active_fires.py).
+The trigger is FIRMS (active_fires.py), as for the MI screening.
 
 STAGE 1 - POOL (`python validation_registered_burns.py pool`)
   From the grant register (TILTAK_SRC: polygons with the final-report text),
@@ -99,7 +98,7 @@ SIZE_BINS = [0, 5, 20, 100, 1e6]
 SIZE_LABELS = ["< 5 ha", "5-20 ha", "20-100 ha", "> 100 ha"]
 REPORTED_BINS = [0, 1, 5, 20, 1e6]
 REPORTED_LABELS = ["< 1 ha", "1-5 ha", "5-20 ha", "> 20 ha"]
-TRIGGERS = {"firms": active_fires.FIRMS_SENSORS, "firms_s3": ("VIIRS", "MODIS", "SLSTR")}
+TRIGGERS = {"firms": active_fires.FIRMS_SENSORS}
 
 # Final-report reading (stage 1), by register fid. No heath burning in the
 # reported period: 105-106 not burnt that year; 109-113, 482-483, 542
@@ -224,8 +223,7 @@ def _point_ids(pts: pd.DataFrame) -> frozenset:
 
 
 def feature_fires(feats: gpd.GeoDataFrame) -> tuple[pd.DataFrame, dict]:
-    """Fires per feature for each trigger, and the mapping jobs. Identical
-    fires under both triggers share one layer key (mapped once)."""
+    """Fires per feature, and the mapping jobs (one per layer key)."""
     from scipy.sparse.csgraph import connected_components
     fires_all = active_fires.load()
     rows, jobs = [], {}
@@ -272,7 +270,7 @@ def _save_layers(job: dict) -> dict:
         g = translate(g, dx, dy)
         pts = pts.copy()
         pts["geometry"] = pts.geometry.translate(dx, dy)
-    reach = [active_fires.reach_shape(p, s, r) for p, s, r in zip(pts.geometry, pts["sensor"], pts["reach_m"])]
+    reach = [active_fires.reach_shape(p, r) for p, r in zip(pts.geometry, pts["reach_m"])]
     aoi = box(*gpd.GeoSeries([g] + reach, crs=burn.MI_CRS).total_bounds).buffer(800).bounds
     target = aoi_geobox(aoi, crs=burn.MI_CRS, resolution=burn.RESOLUTION_M, bbox_crs=burn.MI_CRS)
     poly = rasterio.features.geometry_mask([g], out_shape=target.shape, transform=target.affine, invert=True)
@@ -485,14 +483,7 @@ def run_final() -> dict:
                 "features_firms_pct": out["firms"]["features_detected_pct"],
                 "all": out["firms"]["all"], "usable_imagery": out["firms"]["usable_imagery"],
                 "result_counts": out["firms"]["result_counts"]})
-    new = fi[(fi.trigger == "firms_s3") & ~fi.layer_key.isin(set(fi.loc[fi.trigger == "firms", "layer_key"]))]
-    out["s3_added"] = {"features_detected": int((fe.firms_s3 & ~fe.firms).sum()),
-                       "features_hit": int((fe.firms_s3_hit & ~fe.firms_hit).sum()),
-                       "fires_new_or_changed": int(len(new)), "fires_new_or_changed_hit": int(new.hit.sum()),
-                       "fires_s3_only": int((new.sensors == "SLSTR").sum()),
-                       "fires_s3_only_hit": int(new.loc[new.sensors == "SLSTR", "hit"].sum())}
-    agg = dict(features=("feature", "size"), firms=("firms", "sum"), dnbr=("firms_hit", "sum"),
-               firms_s3=("firms_s3", "sum"), dnbr_s3=("firms_s3_hit", "sum"))
+    agg = dict(features=("feature", "size"), firms=("firms", "sum"), dnbr=("firms_hit", "sum"))
     fe["size"] = pd.cut(fe.polygon_ha, SIZE_BINS, labels=SIZE_LABELS)
     out["by_polygon_size"] = fe.groupby("size", observed=True).agg(**agg).reset_index().astype(
         {"size": str}).to_dict("records")

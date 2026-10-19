@@ -1028,7 +1028,7 @@ Three points matter when using these figures:
 ::: {.callout-note collapse="true" icon="false"}
 ## Analysis code: burn detection
 
-Inputs: the FIRMS detections in [`inputs/active_fires/active_fires_2018_2025.gpkg`](../inputs/active_fires/) (Sentinel-3 detections in the same file are used only for validation) and Sentinel-2 L2A from Microsoft Planetary Computer. Burns are mapped by [`python/mi_dnbr_burn.py`](../python/mi_dnbr_burn.py), which writes [`python/mi_dnbr_burn_results/MI_burns.csv`](../python/mi_dnbr_burn_results/MI_burns.csv) (one row per burnt site-year) and the AE-SJ trajectories of burnt and unburnt pixels. Loading the detections and the distance rule are in [`python/active_fires.py`](../python/active_fires.py). The R code below reproduces the burn statistics and the effect on succession.
+Inputs: the FIRMS detections in [`inputs/active_fires/active_fires_2018_2025.gpkg`](../inputs/active_fires/) and Sentinel-2 L2A from Microsoft Planetary Computer. Burns are mapped by [`python/mi_dnbr_burn.py`](../python/mi_dnbr_burn.py), which writes [`python/mi_dnbr_burn_results/MI_burns.csv`](../python/mi_dnbr_burn_results/MI_burns.csv) (one row per burnt site-year) and the AE-SJ trajectories of burnt and unburnt pixels. Loading the detections and the distance rule are in [`python/active_fires.py`](../python/active_fires.py). The R code below reproduces the burn statistics and the effect on succession.
 
 ```{r}
 #| eval: false
