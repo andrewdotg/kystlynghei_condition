@@ -8,8 +8,8 @@ continuous succession score (**AE-SJ**: 0 = median of field class SJ4,
 to assess trajectories, grazing, burning, scrub and tree clearance, and loss
 to development.
 
-**Report:** [Remote sensed monitoring of coastal heathland (kystlynghei),
-2018-2025](https://andrewdotg.github.io/kystlynghei_condition/) (version 0,
+**Report:** [Coastal heathland
+succession](https://andrewdotg.github.io/kystlynghei_condition/) (version 0.1.0,
 draft for internal review). The rendered report is `docs/index.html`, published
 with GitHub Pages; its source is
 `report/kystlynghei_condition_report.qmd`. After re-rendering, copy
