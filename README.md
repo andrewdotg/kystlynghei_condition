@@ -51,8 +51,12 @@ vectors projected on the SJ4 -> SJ1 prototype axis and rescaled to the field
 class medians; pixels classed into SJ-like classes at the midpoints between
 class medians (`R/model.R`, Methodology Section 3).
 
-**Trajectories.** Theil-Sen trend of the annual polygon median, classed with
-thresholds anchored in the field classes (`R/modules/temporal_trajectories.R`).
+**Trajectories.** Theil-Sen trend of the annual polygon median, after removing
+regional (county) year effects, classed with thresholds anchored in the field
+classes. Each trend has a 90 % confidence interval, with the residual variance
+pooled across similar sites (county x starting SJ class, empirical Bayes), and
+a confidence level (`R/modules/temporal_trajectories.R`, Methodology Sections 5
+and 12).
 
 **Burns** (`python/mi_dnbr_burn.py`, Methodology Section 7). Independent of
 the AE-SJ score:
@@ -96,7 +100,7 @@ naturtiltak pool, FIRMS-triggered mapping, 5 km controls).
 | `python/mi_dnbr_burn_results/events/`, `rasters/` | per-event dNBR layers; per-polygon burn masks on the AE-SJ grid |
 | `python/mi_dnbr_burn_results/MI_burn_aesj_trajectories.csv` | AE-SJ of burnt and never-burnt pixels by year |
 | `python/validation_registered_burns/` | `validation_final.json`, fire and feature tables, threshold grid, spatial representativeness |
-| `outputs/unified_site_summary/` | one record per MI polygon (CSV, polygon and point layers) |
+| `outputs/unified_site_summary/` | one record per MI polygon (CSV, polygon and point layers), with a data dictionary and QGIS metadata (`.qmd`) for the layers |
 
 ## Repository layout
 

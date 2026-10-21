@@ -6,7 +6,12 @@
 # how the change is distributed within each site.
 #
 # 1. Trend: the Theil-Sen slope of the annual site median AE-SJ, expressed as
-#    the change over the period (sj_change = slope x year span).
+#    the change over the period (sj_change = slope x year span). The annual
+#    medians are first corrected for regional year effects: in each county
+#    and year, the median deviation of the county's sites from their own
+#    Theil-Sen lines (weather, snow, growing-season timing and embedding
+#    differences shared by a region). Taking the effect from deviations around
+#    each site's line keeps real regional trends in the data.
 #
 # 2. Triage classes, from two thresholds anchored in the field classes
 #    (TRIAGE_* settings below):
@@ -29,6 +34,26 @@
 # 5. Kendall's tau and BH-FDR p-values are written as diagnostics only. With
 #    8 annual observations per site, significance testing has little power
 #    and is not used to screen sites.
+#
+# 6. Trend confidence: a CONF_LEVEL (90 %) interval on sj_change. The
+#    residual variance of each site's year-corrected series around its
+#    Theil-Sen line is pooled with that of similar sites by empirical Bayes
+#    (Smyth 2004): sites are grouped by county and starting SJ-like class
+#    (POOL_REGION_MERGE, MIN_STRATUM_SITES), and each site's variance is
+#    shrunk towards its group's typical variance in proportion to how much of
+#    the between-site spread in variances is sampling noise. The interval uses
+#    the t distribution with the site's residual df plus the prior df.
+#    Sites in a trend class get trend_confidence:
+#       High   = interval wholly beyond the moderate threshold, on the side
+#                of the class (at least a moderate trend in that direction)
+#       Medium = interval excludes zero (direction clear, size uncertain)
+#       Low    = interval includes zero
+#    "No strong signal" sites get no confidence level: eight annual values
+#    cannot show that a site is stable to within the moderate threshold.
+#    The interval does not include the calibration error of the score
+#    (aesj_model_se_AE_SJ in the annual files), which is mostly a site-level
+#    bias that is stable between years and cancels in the trend; it is
+#    summarised per site as model_se_mean.
 #
 # Plot styling comes from R/theme.R. R/modules/grazing.R and
 # R/modules/scrub_clearance.R use objects built here and must be sourced in
@@ -110,6 +135,23 @@ TRIAGE_MODERATE_PAIR <- c(1L, 2L)
 TRIAGE_LARGE_PAIR <- c(3L, 4L)
 TRIAGE_MODERATE_FRACTION <- 0.5
 TRIAGE_LARGE_FRACTION <- 0.5
+
+# Two-sided confidence level of the interval on sj_change (header item 6).
+CONF_LEVEL <- 0.90
+CONFIDENCE_LEVELS <- c("High", "Medium", "Low")
+
+# Counties from the first two digits of the (2024) kommune number. Regional
+# year effects are estimated per county; Troms (few sites) is merged with
+# Nordland. For pooling the residual variance, Østfold is also merged with
+# Agder, and county x SJ-class groups with fewer than MIN_STRATUM_SITES sites
+# fall back to the whole county.
+FYLKE_BY_PREFIX <- c(
+  "11" = "Rogaland", "15" = "Møre og Romsdal", "18" = "Nordland", "31" = "Østfold",
+  "42" = "Agder", "46" = "Vestland", "50" = "Trøndelag", "55" = "Troms"
+)
+YEAR_EFFECT_REGION_MERGE <- c("Troms" = "Nordland")
+POOL_REGION_MERGE <- c("Troms" = "Nordland", "Østfold" = "Agder")
+MIN_STRATUM_SITES <- 30
 
 # Minimum valid pixels.
 MIN_PIXELS_STATE <- 1
@@ -240,6 +282,46 @@ safe_theilsen_slope <- function(y, x, min_n = MIN_YEARS) {
   valid <- is.finite(dx) & is.finite(dy) & dx != 0
   if (!any(valid)) return(NA_real_)
   stats::median(dy[valid] / dx[valid], na.rm = TRUE)
+}
+
+# Residuals around the Theil-Sen line (intercept = median of y - slope * x).
+theilsen_residuals <- function(y, x, min_n = MIN_YEARS) {
+  slope <- safe_theilsen_slope(y, x, min_n)
+  out <- rep(NA_real_, length(y))
+  keep <- is.finite(y) & is.finite(x)
+  if (!is.finite(slope)) return(out)
+  out[keep] <- y[keep] - (stats::median(y[keep] - slope * x[keep]) + slope * x[keep])
+  out
+}
+
+# Residual variance around the Theil-Sen line, with n - 2 df as for least
+# squares.
+safe_resid_var <- function(y, x, slope, min_n = MIN_YEARS) {
+  keep <- is.finite(y) & is.finite(x)
+  y <- y[keep]; x <- x[keep]
+  if (length(y) < min_n || !is.finite(slope)) return(NA_real_)
+  resid <- y - (stats::median(y - slope * x) + slope * x)
+  sum(resid^2) / (length(y) - 2)
+}
+
+# Empirical-Bayes moderated variances (Smyth 2004, as in limma::squeezeVar),
+# with a separate prior variance for each group and a common prior df.
+# Returns the posterior variances, the prior df d0 and the prior variances.
+trigamma_inverse <- function(x) {
+  stats::uniroot(function(h) trigamma(exp(h)) - x, c(-10, 15), tol = 1e-10)$root |> exp()
+}
+squeeze_var <- function(s2, df, group) {
+  ok <- is.finite(s2) & s2 > 0 & is.finite(df) & df > 0 & !is.na(group)
+  z <- log(s2) - digamma(df / 2) + log(df / 2)
+  zbar <- rep(NA_real_, length(s2))
+  zbar[ok] <- stats::ave(z[ok], group[ok])
+  n_groups <- length(unique(group[ok]))
+  excess <- sum((z[ok] - zbar[ok])^2) / (sum(ok) - n_groups) - mean(trigamma(df[ok] / 2))
+  d0 <- if (excess > 0) 2 * trigamma_inverse(excess) else Inf
+  s02 <- if (is.finite(d0)) exp(zbar + digamma(d0 / 2) - log(d0 / 2)) else exp(zbar)
+  post <- if (is.finite(d0)) (d0 * s02 + df * s2) / (d0 + df) else s02
+  post[!ok] <- NA_real_
+  list(var_post = post, d0 = d0, var_prior = s02)
 }
 
 trajectory_step_qc <- function(dat) {
@@ -658,6 +740,39 @@ p_tilstand <- ggplot(
 # at n = 8.
 # =============================================================================
 
+# ---- Regional year effects (header item 1) ----------------------------------
+fylke_lookup <- mi_sf %>%
+  sf::st_drop_geometry() %>%
+  # Polygons in several kommuner ("1106,1146") take the first one.
+  transmute(fid, fylke = unname(FYLKE_BY_PREFIX[substr(trimws(as.character(kommunenum)), 1, 2)])) %>%
+  distinct(fid, .keep_all = TRUE) %>%
+  mutate(
+    ye_region = dplyr::coalesce(unname(YEAR_EFFECT_REGION_MERGE[fylke]), fylke),
+    pool_region = dplyr::coalesce(unname(POOL_REGION_MERGE[fylke]), fylke)
+  )
+
+state_dat <- state_dat %>%
+  left_join(fylke_lookup, by = "fid") %>%
+  group_by(fid) %>%
+  arrange(year, .by_group = TRUE) %>%
+  mutate(ts_resid = theilsen_residuals(AE_SJ_p50, year)) %>%
+  ungroup()
+
+regional_year_effects <- state_dat %>%
+  filter(is.finite(ts_resid), !is.na(ye_region)) %>%
+  group_by(ye_region, year) %>%
+  summarise(year_effect = stats::median(ts_resid), n_sites = n_distinct(fid), .groups = "drop")
+
+readr::write_csv(regional_year_effects, file.path(OUTPUT_DIR, "02b_regional_year_effects.csv"))
+
+state_dat <- state_dat %>%
+  left_join(regional_year_effects %>% select(ye_region, year, year_effect), by = c("ye_region", "year")) %>%
+  mutate(
+    year_effect = dplyr::coalesce(year_effect, 0),
+    AE_SJ_p50_adj = AE_SJ_p50 - year_effect
+  )
+
+# ---- Trend per site on the year-corrected series ------------------------------
 state_trends <- state_dat %>%
   group_by(fid) %>%
   arrange(year, .by_group = TRUE) %>%
@@ -668,9 +783,16 @@ state_trends <- state_dat %>%
     sj_base = median(head(AE_SJ_p50, 2), na.rm = TRUE),
     sj_final = median(tail(AE_SJ_p50, 2), na.rm = TRUE),
     sj_mean = mean(AE_SJ_p50, na.rm = TRUE),
-    sj_tau = safe_kendall(AE_SJ_p50, year)[["tau"]],
-    sj_p = safe_kendall(AE_SJ_p50, year)[["p"]],
-    sj_slope = safe_theilsen_slope(AE_SJ_p50, year),
+    sj_tau = safe_kendall(AE_SJ_p50_adj, year)[["tau"]],
+    sj_p = safe_kendall(AE_SJ_p50_adj, year)[["p"]],
+    sj_slope = safe_theilsen_slope(AE_SJ_p50_adj, year),
+    resid_var = safe_resid_var(AE_SJ_p50_adj, year, sj_slope),
+    n_trend = sum(is.finite(AE_SJ_p50_adj)),
+    year_sxx = sum((year[is.finite(AE_SJ_p50_adj)] - mean(year[is.finite(AE_SJ_p50_adj)]))^2),
+    fylke = dplyr::first(fylke),
+    pool_region = dplyr::first(pool_region),
+    # Mean annual calibration SE of the site mean score (header item 6).
+    model_se_mean = mean(as.numeric(aesj_model_se_AE_SJ), na.rm = TRUE),
     tilstand = dplyr::first(as.character(tilstand[!is.na(tilstand)]), default = NA_character_),
     bt = dplyr::first(bt[!is.na(bt)], default = NA_integer_),
     .groups = "drop"
@@ -684,10 +806,40 @@ state_trends <- state_dat %>%
   mutate(
     sj_padj = p.adjust(sj_p, method = "BH"),
     year_span = last_year - first_year,
-    # sj_change is the Theil-Sen trend magnitude, the quantity that drives
-    # triage_class. sj_base/sj_final are the raw endpoint values.
-    sj_change = sj_slope * year_span
+    # sj_change is the Theil-Sen trend magnitude of the year-corrected series,
+    # the quantity that drives triage_class. sj_base/sj_final are the raw
+    # (uncorrected) endpoint values.
+    sj_change = sj_slope * year_span,
+    # Starting SJ-like class (class boundaries as in the pixel classification),
+    # for pooling the residual variance.
+    sj_class_base = as.character(cut(
+      sj_base,
+      breaks = c(-Inf, rev((ref_dat$reference[-4] + ref_dat$reference[-1]) / 2), Inf),
+      labels = c("SJ4", "SJ3", "SJ2", "SJ1"), right = FALSE
+    ))
+  ) %>%
+  add_count(pool_region, sj_class_base, name = "n_stratum") %>%
+  mutate(
+    pool_stratum = if_else(n_stratum >= MIN_STRATUM_SITES,
+                           paste(pool_region, sj_class_base, sep = " | "), pool_region),
+    resid_df = n_trend - 2
   )
+
+# ---- Pooled residual variance and interval on sj_change (header item 6) -----
+pooled_var <- squeeze_var(state_trends$resid_var, state_trends$resid_df, state_trends$pool_stratum)
+trend_prior_df <- pooled_var$d0
+
+state_trends <- state_trends %>%
+  mutate(
+    resid_var_pooled = pooled_var$var_post,
+    trend_df = resid_df + trend_prior_df,
+    sj_change_se = sqrt(resid_var_pooled / year_sxx) * year_span,
+    sj_change_lo = sj_change - qt(1 - (1 - CONF_LEVEL) / 2, trend_df) * sj_change_se,
+    sj_change_hi = sj_change + qt(1 - (1 - CONF_LEVEL) / 2, trend_df) * sj_change_se
+  )
+
+cat("\nTrend interval: residual variance pooled within ", n_distinct(state_trends$pool_stratum),
+    " county x SJ-class groups, prior df = ", signif(trend_prior_df, 3), "\n", sep = "")
 
 
 # =============================================================================
@@ -723,7 +875,19 @@ state_trends <- state_trends %>%
     ),
     
     triage_class = factor(triage_class, levels = TRIAGE_LEVELS),
-    tilstand = factor(tilstand, levels = TILSTAND_LEVELS)
+    tilstand = factor(tilstand, levels = TILSTAND_LEVELS),
+
+    # Trend confidence (header item 6), for the trend classes only.
+    # Succession is a negative change.
+    trend_confidence = case_when(
+      is.na(triage_class) | triage_tier == "No strong signal" |
+        !is.finite(sj_change_lo) | !is.finite(sj_change_hi) ~ NA_character_,
+      triage_direction == DIRECTION_SUCCESSIONAL & sj_change_hi < -moderate_threshold ~ "High",
+      triage_direction == DIRECTION_RESTORATIVE & sj_change_lo > moderate_threshold ~ "High",
+      sj_change_hi < 0 | sj_change_lo > 0 ~ "Medium",
+      TRUE ~ "Low"
+    ),
+    trend_confidence = factor(trend_confidence, levels = CONFIDENCE_LEVELS)
   )
 
 
@@ -1392,6 +1556,20 @@ method_notes <- c(
   "  in either direction over the monitoring period. It does not mean the",
   "  site is literally unchanged.",
   "",
+  "Regional year effects: in each county and year, the median deviation of",
+  "  the county's sites from their own Theil-Sen lines is subtracted from the",
+  "  annual medians before the trend is fitted (Troms merged with Nordland).",
+  "",
+  paste0(
+    "Trend confidence: a ", round(100 * CONF_LEVEL), " % interval on the trend-equivalent change,"
+  ),
+  "  from the residual variance around the Theil-Sen line, pooled within",
+  "  county x starting SJ-class groups by empirical Bayes (Smyth 2004), with",
+  "  the t distribution on the residual plus prior df. High = interval wholly",
+  "  beyond the moderate threshold on the side of the class; Medium = interval",
+  "  excludes zero; Low = interval includes zero. No strong signal sites get",
+  "  no confidence level.",
+  "",
   "Kendall's tau and BH-adjusted p-values are retained in the site-level",
   "table as diagnostic-only columns. They are not used to flag or filter any",
   "site: with 8 annual observations per site, formal significance testing",
@@ -1659,6 +1837,9 @@ triage_summary_console <- state_trends %>%
 
 cat("Direction-eligible sites: ", sum(state_trends$direction_eligible, na.rm = TRUE), "\n\n", sep = "")
 print(triage_summary_console, n = Inf)
+
+cat("\nTrend confidence by class (", round(100 * CONF_LEVEL), " % interval):\n", sep = "")
+print(state_trends %>% filter(direction_eligible) %>% count(triage_class, trend_confidence), n = Inf)
 
 cat(
   "\nComposition rows passing QC: ", sum(composition_raw$composition_qc_ok, na.rm = TRUE),
