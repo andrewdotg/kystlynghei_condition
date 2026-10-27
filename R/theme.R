@@ -33,8 +33,8 @@
 
 # Palette matches the "Kystlynghei National Run" / "Pipeline Figures"
 # artifacts (2026-09-22 redesign) - warm sage-stone ground, heather-purple
-# accent (Calluna vulgaris, the kystlynghei-defining bloom colour), moss
-# green for "good"/restoration, ember/burnt-sienna for "poor"/succession
+# accent (Calluna vulgaris, the kystlynghei-defining bloom colour), muted
+# teal for "good"/restoration, ember/burnt-sienna for "poor"/succession
 # (doubles as the fire-related accent elsewhere). Same token NAMES as
 # before, so every module that references SKOG_THEME$whatever keeps working
 # unchanged - only the values moved.
@@ -44,7 +44,9 @@ skog_light <- list(
   rule = "#DCDDCC", rule2 = "#C7C9B6",
   accent = "#7A5289", accent_soft = "#EFE6F1",
   p4 = "#7A2E17", p3 = "#B14A2A", p2 = "#CC7C5C", p1 = "#E3AA95",
-  g1 = "#A8C9A4", g2 = "#7FAE7C", g3 = "#4F7A52", g4 = "#33573A",
+  # "good" tones are teal rather than green so they stay distinct from the
+  # rust "poor" tones under red-green colour blindness (deuteranopia/protanopia)
+  g1 = "#9EC1BA", g2 = "#6E9A93", g3 = "#3E6E68", g4 = "#2A4F4A",
   neutral = "#D3D6C4", neutral2 = "#A8AD97", none = "#E7E9DE",
   conf_hi = "#7A2E17", conf_md = "#B14A2A", conf_lo = "#E3AA95",
   cell1 = "#F1E9F3", cell2 = "#DCC3E2", cell3 = "#A26EAE", cell4 = "#7A5289"
@@ -56,7 +58,7 @@ skog_dark <- list(
   rule = "#333C2C", rule2 = "#2A321F",
   accent = "#C093CB", accent_soft = "#2E2533",
   p4 = "#33241D", p3 = "#B14A2A", p2 = "#CC8563", p1 = "#E4835C",
-  g1 = "#20291D", g2 = "#4F7A52", g3 = "#7FAE7C", g4 = "#86BC7D",
+  g1 = "#1E2A28", g2 = "#3E6E68", g3 = "#6E9A93", g4 = "#7FB5AC",
   neutral = "#3B4235", neutral2 = "#6B7364", none = "#232A1D",
   conf_hi = "#E4835C", conf_md = "#B14A2A", conf_lo = "#7A2E17",
   cell1 = "#241E27", cell2 = "#3A2E40", cell3 = "#6B4A75", cell4 = "#C093CB"

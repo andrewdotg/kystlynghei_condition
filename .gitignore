@@ -74,3 +74,6 @@ inputs/
 # Banner graphic (not used in the report)
 python/diagnostics/banner_figure.py
 report/img/banner.png
+
+# Internal handover / plan notes (not part of the repo)
+HANDOVER.md
