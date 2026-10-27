@@ -586,7 +586,7 @@ Kystlynghei er en kulturbetinget naturtype som er avhengig av beiting og lyngbre
 
 - **Utvikling 2018-2025:** `r fmt_no(key$n_succ)` lokaliteter viser en tydelig utvikling mot gjengroing, mens `r fmt_no(key$n_restor)` viser en utvikling mot mer åpen lynghei. Gjengroende lokaliteter er dermed om lag `r fmt_no(key$ratio, 1)` ganger så mange som restaurerte. `r fmt_no(key$n_nosignal)` lokaliteter viser ingen tydelig endring.
 - **Økende forskjeller:** Lokaliteter i dårlig eller svært redusert tilstand gror oftest videre igjen (`r fmt_no(100 * key$succ_poor, 0)` %), mens andelen som restaureres er høyest blant lokaliteter som allerede er i god tilstand (`r fmt_no(100 * key$restor_good, 0)` %, mot `r fmt_no(100 * key$restor_poor, 0)` % blant lokaliteter i dårlig tilstand).
-- **Brann:** Satellittdata (NASA FIRMS og Sentinel-2) viser `r fmt_no(key$fire_siteyears)` branner på `r fmt_no(key$fire_sites)` lokaliteter i perioden 2018-2025, med et samlet brent areal på `r fmt_no(key$fire_ha)` ha. Ut fra tidspunktet for brannen, som en foreløpig indikasjon, skjedde `r fmt_no(key$rx_siteyears)` branner (`r fmt_no(key$rx_ha)` ha) i lyngbrenningssesongen og er trolig skjøtselsbrenning, mens `r fmt_no(key$wf_siteyears)` (`r fmt_no(key$wf_ha)` ha) skjedde i juni-august og trolig er ukontrollerte branner. Brent lynghei ble mer åpen (mer SJ1-preget) enn ubrent lynghei på samme lokalitet, med `r fmt_no(key$eff_rx1, 2)` enheter året etter skjøtselsbrenning, økende til `r fmt_no(key$eff_rx4, 2)` etter fire år. Små branner fanges sjelden opp, så tallene er minimumsestimater.
+- **Brann:** Satellittdata (NASA FIRMS og Sentinel-2) viser `r fmt_no(key$fire_siteyears)` branner på `r fmt_no(key$fire_sites)` lokaliteter i perioden 2018-2025, med et samlet brent areal på `r fmt_no(key$fire_ha)` ha. Ut fra tidspunktet for brannen, som en foreløpig indikasjon, skjedde `r fmt_no(key$rx_siteyears)` branner (`r fmt_no(key$rx_ha)` ha) i lyngbrenningssesongen og er trolig skjøtselsbrenning, mens `r fmt_no(key$wf_siteyears)` (`r fmt_no(key$wf_ha)` ha) skjedde i juni-august og trolig er ukontrollerte branner. Brent lynghei ble mer åpen (mer SJ1-preget) enn ubrent lynghei på samme lokalitet, med `r fmt_no(100 * key$eff_rx1 / key$gap12, 0)` % av avstanden mellom typisk SJ2- og SJ1-verdi året etter skjøtselsbrenning, økende til `r fmt_no(100 * key$eff_rx4 / key$gap12, 0)` % etter fire år. Små branner fanges sjelden opp, så tallene er minimumsestimater.
 - **Rydding av kratt og trær:** `r fmt_no(key$clear_sites)` lokaliteter med restaurerende utvikling har piksler som har gått fra gjengrodd (SJ3/SJ4) til åpen tilstand (SJ1/SJ2), til sammen `r fmt_no(key$clear_ha, 0)` ha. Bare `r fmt_no(key$clear_fire_ha, 0)` ha av dette faller sammen med en kartlagt brann. `r fmt_no(key$spruce_ha, 1)` ha gran er fjernet på `r fmt_no(key$spruce_sites)` lokaliteter, nesten utelukkende ved rydding.
 - **Beiting:** Lokaliteter med beitespor gror langsommere igjen enn lokaliteter uten, men forskjellen er liten og delvis sammenfallende med tilstandsvurderingen.
 - **Nedbygging:** `r fmt_no(key$dev_ha, 1)` ha kystlynghei på `r fmt_no(key$dev_sites)` lokaliteter er varig omgjort til bebygd areal.
@@ -1110,7 +1110,7 @@ Both burn types affected mostly open heath. Before the burn, `r pct(key$rx_pre_s
 
 ```{r tbl-fire-type}
 #| label: tbl-fire-type
-#| tbl-cap: "Burns 2018-2025 by provisional type. Burnt area and share of site are medians across burns. The condition before and after the burn is the share of the burnt area in each SJ-like class in the year before and the year after the burn, weighted by area. The effect is the mean change in AE-SJ of burnt relative to never-burnt pixels in the same site (year before the burn = 0), with its 95 % confidence interval; burns in 2025 are not included."
+#| tbl-cap: "Burns 2018-2025 by provisional type. Burnt area and share of site are medians across burns. The condition before and after the burn is the share of the burnt area in each SJ-like class in the year before and the year after the burn, weighted by area. The effect is the mean change in score of burnt relative to never-burnt pixels in the same site (year before the burn = 0), as a percentage of the SJ1-SJ2 step, with its 95 % confidence interval; burns in 2025 are not included."
 
 fires |>
   group_by(probable_fire_type) |>
@@ -1123,7 +1123,7 @@ fires |>
               transmute(probable_fire_type, `SJ1-like after` = pct(sj1, 0)), by = "probable_fire_type") |>
   left_join(eff_summary |> filter(years_since_burn == 1) |>
               transmute(probable_fire_type,
-                        `Effect, year +1` = paste0(fmt(effect, 3), " (", fmt(lo, 3), " to ", fmt(hi, 3), ")")),
+                        `Effect, year +1` = paste0(step12(effect), " (", step12(lo), " to ", step12(hi), ")")),
             by = "probable_fire_type") |>
   mutate(Type = if_else(probable_fire_type == "wildfire", "June-August (probable wildfire)",
                         "Lyngbrenning season (probable prescribed)"), .before = 1) |>
