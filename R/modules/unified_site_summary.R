@@ -11,6 +11,8 @@
 #   - burns: python/mi_dnbr_burn_results/MI_burns.csv (one row per burnt
 #     site-year: dNBR-mapped burnt area, FIRMS dates, provisional fire type)
 #   - spruce cover: inputs/kystlynghei_picea_points.shp (site-wide %)
+#   - loss to development: inputs/MI_DW_persistent_development_annual.csv
+#     (persistent conversion to built land in Dynamic World, area per year)
 #
 # OUTPUT: one CSV with full column names and two shapefiles with the same
 # attributes (abbreviated field names): points for national maps, polygons
@@ -44,6 +46,8 @@ BURNS_CSV <- file.path(REPO_ROOT, "python", "mi_dnbr_burn_results", "MI_burns.cs
 
 MI_SHAPEFILE <- file.path(REPO_ROOT, "inputs", "MI_kystlynghei.shp")
 
+DEV_CSV <- file.path(REPO_ROOT, "inputs", "MI_DW_persistent_development_annual.csv")
+
 OUTPUT_DIR <- file.path(OUTPUTS_ROOT, "unified_site_summary")
 
 # Priority flags for targeting measures (report Discussion):
@@ -75,7 +79,9 @@ trajectory <- readr::read_csv(STATE_TRENDS_CSV, show_col_types = FALSE) %>%
   transmute(
     fid = trimws(as.character(fid)),
     tilstand = as.character(tilstand),
-    triage_class = as.character(triage_class),
+    # Released as "opening" rather than "restoration": the score shows heath
+    # becoming more open, not whether management caused it.
+    triage_class = sub("restoration", "opening", as.character(triage_class), fixed = TRUE),
     sj_base = as.numeric(sj_base),
     sj_final = as.numeric(sj_final),
     sj_change = as.numeric(sj_change),
@@ -204,6 +210,31 @@ burn_by_site <- burns %>%
 
 
 # =============================================================================
+# 5b. LOSS TO DEVELOPMENT (one row per site, from the annual areas of
+#     persistent conversion to built land)
+# =============================================================================
+
+if (!file.exists(DEV_CSV)) {
+  stop("Could not find ", DEV_CSV)
+}
+
+dev_by_site <- readr::read_csv(DEV_CSV, col_select = c(fid, num_range("dev_ha_", 2018:2025)),
+                               show_col_types = FALSE) %>%
+  mutate(fid = trimws(as.character(fid))) %>%
+  tidyr::pivot_longer(-fid, names_to = "year", names_prefix = "dev_ha_", values_to = "ha") %>%
+  filter(coalesce(as.numeric(ha), 0) > 0) %>%
+  mutate(year = as.integer(year), ha = as.numeric(ha)) %>%
+  group_by(fid) %>%
+  summarise(
+    dev_area_ha = sum(ha),
+    # Most sites lose land in one year; the year with the most loss is used for mapping.
+    dev_main_year = year[which.max(ha)],
+    dev_years = paste(sort(year), collapse = ";"),
+    .groups = "drop"
+  )
+
+
+# =============================================================================
 # 6. JOIN EVERYTHING ONTO MI GEOMETRY
 # =============================================================================
 
@@ -216,7 +247,9 @@ unified <- mi_sf %>%
   left_join(scrub_tree, by = "fid") %>%
   left_join(picea, by = "fid") %>%
   left_join(burn_by_site, by = "fid") %>%
+  left_join(dev_by_site, by = "fid") %>%
   mutate(
+    dev_area_ha = coalesce(dev_area_ha, 0),
     burn_confirmed = coalesce(burn_confirmed, FALSE),
     tree_removed = coalesce(tree_removed, FALSE),
     n_sj34pic = coalesce(n_sj34pic, 0L),
@@ -296,6 +329,9 @@ unified_shp_fields <- unified %>%
     burn_ha = burn_area_ha_total,
     burn_last = most_recent_burn_year,
     fire_type,
+    dev_ha = dev_area_ha,
+    dev_year = dev_main_year,
+    dev_years,
     site_type
   )
 
@@ -318,11 +354,11 @@ data_dictionary <- tibble::tribble(
   ~csv_column, ~shp_field, ~description, ~units,
   "fid", "fid", "MI polygon ID (fid in the MI kystlynghei polygons)", "",
   "tilstand", "tilstand", "Field condition assessment from the MI survey (God, Moderat, Dårlig, Svært redusert)", "",
-  "triage_class", "triage", "Trajectory class 2018-2025 from sj_change: Strong/Moderate succession, No strong signal, Moderate/Strong restoration. Empty = excluded (heavy grazing BT5/BT6, development, too few years or implausible annual jumps)", "",
+  "triage_class", "triage", "Trajectory class 2018-2025 from sj_change: Strong/Moderate succession, No strong signal, Moderate/Strong opening (towards more open heath; the cause, management or otherwise, is not identified). Empty = excluded (heavy grazing BT5/BT6, development, too few years or implausible annual jumps)", "",
   "trend_confidence", "trend_conf", "Confidence in the trajectory from the 90 % interval on sj_change: High = interval wholly beyond the moderate threshold on the side of the class (at least a moderate trend in that direction), Medium = interval excludes zero (direction clear, size uncertain), Low = interval includes zero. Empty for No strong signal and excluded sites", "",
   "sj_base", "sj_base", "Mean AE-SJ score of the first two years (normally 2018-2019), from the annual site medians", "AE-SJ score",
   "sj_final", "sj_final", "Mean AE-SJ score of the last two years (normally 2024-2025), from the annual site medians", "AE-SJ score",
-  "sj_change", "sj_change", "Trend-equivalent change over the period: Theil-Sen slope of the annual site median AE-SJ, corrected for regional (county) year effects, x year span. Negative = towards SJ4 (succession), positive = towards SJ1 (restoration)", "AE-SJ score",
+  "sj_change", "sj_change", "Trend-equivalent change over the period: Theil-Sen slope of the annual site median AE-SJ, corrected for regional (county) year effects, x year span. Negative = towards SJ4 (succession), positive = towards SJ1 (opening)", "AE-SJ score",
   "sj_change_se", "chg_se", "Standard error of sj_change, from the scatter of the year-corrected annual medians around the Theil-Sen line, pooled with similar sites (county x starting SJ class, empirical Bayes)", "AE-SJ score",
   "sj_change_lo", "chg_lo90", "Lower limit of the 90 % interval on sj_change (t distribution, residual plus prior df)", "AE-SJ score",
   "sj_change_hi", "chg_hi90", "Upper limit of the 90 % interval on sj_change", "AE-SJ score",
@@ -367,6 +403,9 @@ data_dictionary <- tibble::tribble(
   "ha_picea_burnt", "ha_pic_brn", "Area of n_sj34pic_brn, 0 where no transition data", "ha",
   "ha_picea_clearance", "ha_pic_clr", "Area of n_sj34pic_clr, 0 where no transition data", "ha",
   "picea_removal", "picea_rem", "Spruce removed: any SJ3/SJ4 to SJ1/SJ2 pixel inside the Picea mask", "TRUE/FALSE",
+  "dev_area_ha", "dev_ha", "Area persistently converted to built land 2018-2025 (Dynamic World), summed over years", "ha",
+  "dev_main_year", "dev_year", "Year with the largest area converted to built land (empty = no loss)", "year",
+  "dev_years", "dev_years", "Years with area converted to built land, separated by ;", "",
   "site_type", "site_type", "Mechanisms present at the site: burnt, shrub/tree removal, combinations, or none detected", ""
 )
 

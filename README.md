@@ -15,7 +15,13 @@ with GitHub Pages; its source is
 `report/kystlynghei_condition_report.qmd`. After re-rendering, copy
 `report/kystlynghei_condition_report.html` to `docs/index.html`.
 
-The methodology is a separate document (Word).
+The methodology is a living HTML document linked from the report's appendix:
+[methodology](https://andrewdotg.github.io/kystlynghei_condition/kystlynghei_methods.html).
+Its source is `report/kystlynghei_methods.qmd` (figures in `report/img/methods_fig*.png`).
+After editing, render it with `quarto render report/kystlynghei_methods.qmd` and copy
+`report/kystlynghei_methods.html` to `docs/kystlynghei_methods.html`. The report links to
+its sections by anchor (`kystlynghei_methods.html#section-11-4`, `#table-1`, `#figure-2`),
+so keep the `{#section-n}` ids on the headings when editing.
 
 ## Pipeline
 

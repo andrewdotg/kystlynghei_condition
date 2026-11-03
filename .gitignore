@@ -40,6 +40,9 @@ report/data/
 report/kystlynghei_condition_report.html
 report/kystlynghei_condition_report_files/
 report/kystlynghei_condition_report_cache/
+# Rendered methodology (the published copy is docs/kystlynghei_methods.html)
+report/kystlynghei_methods.html
+report/kystlynghei_methods_files/
 # Condensed Word version of the report - kept local, not part of the repo
 report/kystlynghei_condition_report_short.*
 report/kystlynghei_condition_report_short_files/
