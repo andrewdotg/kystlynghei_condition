@@ -2,7 +2,7 @@
 """mi_aesj_annual_products.py - national annual AE-SJ scoring of the MI
 kystlynghei polygons, and the 2018-2019 -> 2024-2025 pixel transitions.
 
-For every MI polygon and every year 2018-2025, the AlphaEarth embeddings
+For every MI polygon and every year 2017-2025, the AlphaEarth embeddings
 (source.coop archive, read with aef_loader) are scored with the fixed AE-SJ
 model (ae_sj_model.py, generated from R/model.R) on a lattice-snapped 10 m
 grid (aef_geobox.aoi_geobox), and summarised per polygon-year.
@@ -40,6 +40,14 @@ RUN MODES
                    the existing output - and merges them into the existing
                    outputs. Everything else is independent of the burn layer.
                    Run this after mi_dnbr_burn.py.
+  "add_years"      scores every polygon only for the ANALYSIS_YEARS that have
+                   no MI_aesj_annual_<year>.csv yet (~2 h per year) and leaves
+                   the other years and the transitions as they are. Use it
+                   when the period is extended (e.g. 2017 added in Nov 2026).
+
+The baseline and final periods of the transitions stay 2018-2019 and
+2024-2025: burns are only mapped from 2018 (Sentinel-2 before 2017 is too
+sparse for the dNBR before-images), so 2017 cannot be split by mechanism.
 
 CONCURRENCY: the blocking AEF fetch runs in asyncio.to_thread, so polygons
 overlap (benchmark: 10 in parallel, 7.1x faster than serial, identical
@@ -82,11 +90,11 @@ BURN_DIR = Path(__file__).parent / "mi_dnbr_burn_results"
 MODEL_CLASS_REFERENCE_CSV = REPO / "outputs" / "model" / "FINAL_AE_SJ_covadj_class_reference_positions.csv"
 OUTPUT_DIR = Path(__file__).parent / "mi_aesj_annual_results"
 
-RUN_MODE = "refresh_burnt"   # "all" or "refresh_burnt"
+RUN_MODE = "add_years"   # "all", "refresh_burnt" or "add_years"
 MAX_CONCURRENT_FEATURES = 10
 CHECKPOINT_EVERY_N_FEATURES = 100
 
-ANALYSIS_YEARS = list(range(2018, 2026))
+ANALYSIS_YEARS = list(range(2017, 2026))
 BASELINE_YEARS = (2018, 2019)
 FINAL_YEARS = (2024, 2025)
 BURN_YEARS = list(range(2018, 2026))
@@ -217,6 +225,36 @@ def _pixel_stats(scores, mask, prefix, boundaries, class_sd) -> dict:
             f"{prefix}ci95_hi_AE_SJ": mean + 1.96 * se}
 
 
+def _year_row(fid, year, scores, poly, valid, boundaries, class_sd) -> dict:
+    """One polygon-year row of the annual output."""
+    row = {"fid": fid, "year": year, "status": "ok", **_pixel_stats(scores, valid, "aesj_", boundaries, class_sd)}
+    codes = classify_sj(scores, boundaries)
+    nv = int(valid.sum())
+    row["n_valid"] = nv
+    row["polygon_area_ha"] = int(poly.sum()) * PIXEL_AREA_HA
+    for sj in (1, 2, 3, 4):
+        row[f"n_SJ{sj}_like"] = int((valid & (codes == sj)).sum())
+    for sj in (1, 2, 3, 4):
+        row[f"prop_SJ{sj}_like"] = row[f"n_SJ{sj}_like"] / nv if nv else np.nan
+    return row
+
+
+async def process_years(reader, index, fid, geometry, years, boundaries, class_sd) -> list[dict]:
+    """Annual rows only (no transitions), for the add_years mode."""
+    target = aoi_geobox(geometry.bounds, crs=MI_CRS, resolution=RESOLUTION_M, bbox_crs=MI_CRS)
+    poly = rasterio.features.geometry_mask([geometry], out_shape=target.shape, transform=target.affine, invert=True)
+    rows = []
+    for year in years:
+        scores = await _load_year_scores(reader, index, geometry.bounds, year, target)
+        if scores is None:
+            rows.append({"fid": fid, "year": year, "status": f"no_aef_tiles_{year}"})
+        elif scores.shape != poly.shape:
+            rows.append({"fid": fid, "year": year, "status": f"grid_mismatch_{scores.shape}"})
+        else:
+            rows.append(_year_row(fid, year, scores, poly, poly & np.isfinite(scores), boundaries, class_sd))
+    return rows
+
+
 async def process_feature(reader, index, fid, geometry, boundaries, class_sd) -> tuple[list[dict], dict]:
     target = aoi_geobox(geometry.bounds, crs=MI_CRS, resolution=RESOLUTION_M, bbox_crs=MI_CRS)
     poly = rasterio.features.geometry_mask([geometry], out_shape=target.shape, transform=target.affine, invert=True)
@@ -237,16 +275,7 @@ async def process_feature(reader, index, fid, geometry, boundaries, class_sd) ->
             rows.append({"fid": fid, "year": year, "status": f"grid_mismatch_{scores.shape}"})
             continue
         valid = poly & np.isfinite(scores)
-        row = {"fid": fid, "year": year, "status": "ok", **_pixel_stats(scores, valid, "aesj_", boundaries, class_sd)}
-        codes = classify_sj(scores, boundaries)
-        nv = int(valid.sum())
-        row["n_valid"] = nv
-        row["polygon_area_ha"] = int(poly.sum()) * PIXEL_AREA_HA
-        for sj in (1, 2, 3, 4):
-            row[f"n_SJ{sj}_like"] = int((valid & (codes == sj)).sum())
-        for sj in (1, 2, 3, 4):
-            row[f"prop_SJ{sj}_like"] = row[f"n_SJ{sj}_like"] / nv if nv else np.nan
-        rows.append(row)
+        rows.append(_year_row(fid, year, scores, poly, valid, boundaries, class_sd))
         if year in BASELINE_YEARS:
             base_sum[valid] += scores[valid]
             base_n[valid] += 1
@@ -317,11 +346,15 @@ def _drop_legacy(df: pd.DataFrame) -> pd.DataFrame:
     return df[[c for c in df.columns if not c.startswith(LEGACY_PREFIXES)]]
 
 
-def write_outputs(annual: list[dict], transitions: list[dict]) -> None:
+def write_outputs(annual: list[dict], transitions: list[dict] | None, years=None) -> None:
+    """Writes the annual files of `years` (default all ANALYSIS_YEARS) and,
+    unless transitions is None, the transitions file."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     a = _drop_legacy(pd.DataFrame(annual))
-    for y in ANALYSIS_YEARS:
+    for y in years or ANALYSIS_YEARS:
         a[a["year"] == y].sort_values("fid").to_csv(OUTPUT_DIR / f"MI_aesj_annual_{y}.csv", index=False)
+    if transitions is None:
+        return
     t = _drop_legacy(pd.DataFrame(transitions))
     # Polygons scored before the scrub/tree columns existed have no burns
     # (every burnt polygon is re-scored by refresh_burnt), so their values
@@ -346,11 +379,60 @@ def load_existing() -> tuple[list[dict], list[dict]]:
     return annual, (pd.read_csv(p).to_dict("records") if p.exists() else [])
 
 
+async def add_years(mi: gpd.GeoDataFrame, boundaries, class_sd) -> None:
+    """Scores every polygon for the ANALYSIS_YEARS without an annual file.
+    Resumable: the new years are checkpointed to *.partial.csv."""
+    years = [y for y in ANALYSIS_YEARS if not (OUTPUT_DIR / f"MI_aesj_annual_{y}.csv").exists()]
+    if not years:
+        print("add_years: every year in ANALYSIS_YEARS already has an annual file", flush=True)
+        return
+    partial = OUTPUT_DIR / f"MI_aesj_annual_{years[0]}-{years[-1]}.partial.csv"
+    annual = pd.read_csv(partial).to_dict("records") if partial.exists() else []
+    done = {int(r["fid"]) for r in annual}
+    mi = mi[~mi["fid"].isin(done)].reset_index(drop=True)
+    print(f"add_years {years}: {len(mi)} polygons to score ({len(done)} already done)", flush=True)
+
+    index = AEFIndex(source=DataSource.SOURCE_COOP)
+    await index.download()
+    index.load()
+    sem, lock = asyncio.Semaphore(MAX_CONCURRENT_FEATURES), asyncio.Lock()
+    done_n = 0
+
+    async def run_one(fid, geometry):
+        nonlocal done_n
+        async with sem:
+            try:
+                rows = await process_years(reader, index, fid, geometry, years, boundaries, class_sd)
+            except Exception as exc:  # noqa: BLE001 - one bad polygon must not stop the run
+                traceback.print_exc()
+                rows = [{"fid": fid, "year": y, "status": f"error: {exc}"} for y in years]
+        async with lock:
+            annual.extend(rows)
+            done_n += 1
+            print(f"[{done_n}/{len(mi)}] fid={fid}", flush=True)
+            if done_n % CHECKPOINT_EVERY_N_FEATURES == 0:
+                OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+                pd.DataFrame(annual).to_csv(partial, index=False)
+
+    async with VirtualTiffReader() as reader:
+        await asyncio.gather(*[run_one(int(r.fid), r.geometry) for r in mi.itertuples()])
+    write_outputs(annual, None, years)
+    partial.unlink(missing_ok=True)
+    print(f"Wrote {years} for {len({int(r['fid']) for r in annual})} polygons to {OUTPUT_DIR}", flush=True)
+
+
 async def main() -> None:
     mi = load_mi_features()
     boundaries, class_sd = load_sj_boundaries(), load_class_sd()
+    if RUN_MODE == "add_years":
+        await add_years(mi, boundaries, class_sd)
+        return
     annual, transitions = load_existing()
     if RUN_MODE == "refresh_burnt":
+        # it rewrites every year's file, so a missing year would be written for the burnt polygons only
+        missing = [y for y in ANALYSIS_YEARS if not (OUTPUT_DIR / f"MI_aesj_annual_{y}.csv").exists()]
+        if missing:
+            raise SystemExit(f"refresh_burnt: no annual file for {missing}; run RUN_MODE = 'add_years' first")
         burns = pd.read_csv(BURN_DIR / "MI_burns.csv")
         tr = pd.DataFrame(transitions)
         prev = set(tr.loc[tr["n_SJ34_to_SJ12_burnt"].fillna(0) > 0, "fid"].astype(int))
@@ -365,7 +447,7 @@ async def main() -> None:
         mi = mi[~mi["fid"].isin(done)].reset_index(drop=True)
         print(f"all: {len(mi)} polygons to score ({len(done)} already done)", flush=True)
     else:
-        raise ValueError(f"RUN_MODE must be 'all' or 'refresh_burnt', got {RUN_MODE!r}")
+        raise ValueError(f"RUN_MODE must be 'all', 'refresh_burnt' or 'add_years', got {RUN_MODE!r}")
 
     index = AEFIndex(source=DataSource.SOURCE_COOP)
     await index.download()

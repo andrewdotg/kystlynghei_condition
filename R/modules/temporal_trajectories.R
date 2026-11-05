@@ -122,6 +122,14 @@ OUTPUT_DIR <- file.path(OUTPUTS_ROOT, "temporal_trajectories")
 # 2. ANALYSIS SETTINGS
 # =============================================================================
 
+# Trend period. Every year needs an annual file in ANNUAL_INPUT_DIR; sj_base and
+# sj_final are the first and last two years of each site's series. 2017 is scored
+# (python/mi_aesj_annual_products.py, RUN_MODE "add_years") but not used by
+# default: it sits about 0.08 above 2018 at most sites, the regional year effects
+# do not absorb a shift at the end of the series, and it roughly doubles the
+# successional trends (Nov 2026 sensitivity run). Use 2017:2025 only as a sensitivity analysis.
+ANALYSIS_YEARS <- 2018:2025
+
 MIN_YEARS <- 6
 
 # ---- Triage thresholds ------------------------------------------------------
@@ -457,6 +465,13 @@ if (length(missing_fields) > 0) {
 
 ae_mi <- ae_mi %>%
   mutate(year = as.integer(year), across(all_of(required_fields), as.numeric))
+
+missing_years <- setdiff(ANALYSIS_YEARS, unique(ae_mi$year))
+if (length(missing_years) > 0) {
+  stop("No annual AE-SJ file for year(s) ", paste(missing_years, collapse = ", "), " in ", ANNUAL_INPUT_DIR,
+       "\nRun python/mi_aesj_annual_products.py with RUN_MODE = \"add_years\".")
+}
+ae_mi <- ae_mi %>% filter(year %in% ANALYSIS_YEARS)
 
 
 # =============================================================================
@@ -1018,7 +1033,8 @@ if (anyDuplicated(composition_file_years)) {
   )
 }
 
-missing_composition_years <- setdiff(2018:2025, composition_file_years)
+composition_files <- composition_files[composition_file_years %in% ANALYSIS_YEARS]
+missing_composition_years <- setdiff(ANALYSIS_YEARS, composition_file_years)
 if (length(missing_composition_years) > 0) {
   stop("Composition exports are missing year(s): ", paste(missing_composition_years, collapse = ", "))
 }
