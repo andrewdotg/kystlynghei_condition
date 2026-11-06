@@ -2,7 +2,7 @@
 title: "Coastal heathland succession: methodology"
 subtitle: "Methods, validation and uncertainty for the satellite monitoring of mapped Norwegian coastal heathland [NO_KYST_001]"
 author:
-  - name: Geethen Singh
+  - name: Andrew Møller Gray
     affiliations:
       - name: "Norwegian Institute for Nature Research (NINA)"
 date: last-modified
