@@ -64,4 +64,12 @@ source(file.path(REPO_ROOT, "R", "naturTiltak", "naturTiltak_burn.R"))     # AE-
 
 # source(file.path(REPO_ROOT, "R", "naturTiltak", "naturTiltak_scrub.R"))  # registered clearance (Methodology Table 6); interactive (file.choose()) - run separately
 
-# 5. Report: quarto render report/kystlynghei_condition_report.qmd
+# 5. Report data: copy what the report reads into report/render_data/ (the
+#    script expects the repo root as working directory; 00_setup.R moved it).
+local({
+  old_wd <- setwd(REPO_ROOT)
+  on.exit(setwd(old_wd))
+  source("R/export_render_data.R", local = TRUE)
+})
+
+# 6. Report: quarto render report/kystlynghei_condition_report.qmd

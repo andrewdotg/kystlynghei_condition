@@ -66,6 +66,9 @@ execute:
   cache: false
 csl: ambio.csl
 bibliography: references.bib
+# Link targets: change these when the repo moves (e.g. to NINAnor)
+repo-url: https://github.com/andrewdotg/kystlynghei_condition
+methods-url: https://andrewdotg.github.io/kystlynghei_condition/kystlynghei_methods.html
 ---
 
 
@@ -79,12 +82,15 @@ library(ggplot2)
 library(gt)
 library(scales)
 
-source(here::here("R", "theme.R"))
+# All data are read from render_data/ next to this file (written by
+# R/export_render_data.R), so the report renders outside the repo too.
+RD <- "render_data"
+rd_path <- function(file) file.path(RD, file)
+IN_REPO <- file.exists("../R/theme.R")
+
+source(rd_path("theme.R"))
 
 knitr::opts_chunk$set(dev = "ragg_png", dpi = 150, fig.width = 7.5, fig.height = 4.2)
-
-REPO <- here::here()
-out_path <- function(...) file.path(REPO, "outputs", ...)
 
 fmt  <- function(x, d = 0) formatC(x, format = "f", digits = d, big.mark = ",")
 fmt_no <- function(x, d = 0) formatC(x, format = "f", digits = d, big.mark = " ", decimal.mark = ",")  # Norwegian
@@ -129,18 +135,17 @@ FYLKE_BY_PREFIX <- c(
 #| include: false
 
 # ---- site-level results (one row per MI polygon) ----------------------------
-sites <- read_csv(out_path("unified_site_summary", "MI_unified_site_summary.csv"),
+sites <- read_csv(rd_path("MI_unified_site_summary.csv.gz"),
                   show_col_types = FALSE) |>
   mutate(triage_class = as_opening(triage_class))
 
-traj <- read_csv(out_path("temporal_trajectories", "07_site_level_results_ALL.csv"),
+traj <- read_csv(rd_path("07_site_level_results_ALL.csv.gz"),
                  show_col_types = FALSE) |>
   mutate(triage_class = as_opening(triage_class))
 
 # Headline clearance population: restorative-trajectory sites with at least
 # one SJ3/SJ4 -> SJ1/SJ2 pixel transition (Methodology Section 8).
-clear_raw <- read_csv(out_path("scrub_clearance", "SJ34_to_SJ12_restorative",
-                               "15_restorative_sites_SJ34_to_SJ12.csv"),
+clear_raw <- read_csv(rd_path("15_restorative_sites_SJ34_to_SJ12.csv.gz"),
                       show_col_types = FALSE)
 
 # Scrub removal = SJ3-source, non-spruce pixels; tree removal = SJ4-source or
@@ -152,17 +157,16 @@ clear <- clear_raw
 # mapping (python/mi_dnbr_burn.py). Provisional fire type from the FIRMS dates:
 # any detection in June-August = probable wildfire, otherwise lyngbrenning
 # season (probable prescribed burn).
-BURN_DIR <- file.path(REPO, "python", "mi_dnbr_burn_results")
 FIRE_TYPE_LAB <- c(prescribed_burn = "Lyngbrenning season (probable prescribed burn)",
                    wildfire        = "June-August (probable wildfire)")
-fires <- read_csv(file.path(BURN_DIR, "MI_burns.csv"), show_col_types = FALSE) |>
+fires <- read_csv(rd_path("MI_burns.csv.gz"), show_col_types = FALSE) |>
   mutate(fire_type = factor(FIRE_TYPE_LAB[probable_fire_type], levels = FIRE_TYPE_LAB))
-fire_events <- read_csv(file.path(BURN_DIR, "MI_firms_events.csv"), show_col_types = FALSE)
-fire_dets   <- read_csv(file.path(BURN_DIR, "MI_firms_detections.csv"), show_col_types = FALSE)
+fire_events <- read_csv(rd_path("MI_firms_events.csv.gz"), show_col_types = FALSE)
+fire_dets   <- read_csv(rd_path("MI_firms_detections.csv.gz"), show_col_types = FALSE)
 
 # AE-SJ of burnt pixels and of the same site's never-burnt pixels, by year
 # relative to the burn (python/mi_dnbr_burn.py, stage 2).
-burn_traj <- read_csv(file.path(BURN_DIR, "MI_burn_aesj_trajectories.csv"), show_col_types = FALSE)
+burn_traj <- read_csv(rd_path("MI_burn_aesj_trajectories.csv.gz"), show_col_types = FALSE)
 
 
 # Site-level fire type: a site with any summer burn counts as a wildfire site.
@@ -173,39 +177,29 @@ site_fire_type <- fires |>
   summarise(site_fire_type = if (any(probable_fire_type == "wildfire")) "wildfire" else "prescribed_burn",
             both_types = n_distinct(probable_fire_type) > 1, .groups = "drop")
 
-# Annual polygon statistics from the national scoring run.
-annual <- purrr::map_dfr(2018:2025, function(y) {
-  read_csv(file.path(REPO, "python", "mi_aesj_annual_results",
-                     sprintf("MI_aesj_annual_%d.csv", y)),
-           col_select = c(fid, year, status, aesj_median_AE_SJ),
-           show_col_types = FALSE)
-}) |>
+# Annual polygon statistics from the national scoring run (2018-2025).
+annual <- read_csv(rd_path("aesj_annual.csv.gz"),
+                   col_select = c(fid, year, status, aesj_median_AE_SJ),
+                   show_col_types = FALSE) |>
   filter(status == "ok")
 
-confusion <- read_csv(out_path("sj_score_validation",
-                               "02_sj_score_validation_confusion_matrix.csv"),
+confusion <- read_csv(rd_path("02_sj_score_validation_confusion_matrix.csv.gz"),
                       show_col_types = FALSE)
 
-grazing_ci   <- read_csv(out_path("temporal_trajectories", "grazing",
-                                  "24_grazing_slope_median_bootstrap_ci.csv"),
+grazing_ci   <- read_csv(rd_path("24_grazing_slope_median_bootstrap_ci.csv.gz"),
                          show_col_types = FALSE)
-grazing_test <- read_csv(out_path("temporal_trajectories", "grazing",
-                                  "24_grazing_slope_test_result.csv"),
+grazing_test <- read_csv(rd_path("24_grazing_slope_test_result.csv.gz"),
                          show_col_types = FALSE)
-grazing_strata <- read_csv(out_path("temporal_trajectories", "grazing",
-                                    "23_no_grazing_vs_grazing_by_tilstand.csv"),
+grazing_strata <- read_csv(rd_path("23_no_grazing_vs_grazing_by_tilstand.csv.gz"),
                            show_col_types = FALSE)
 
-dev <- read_csv(file.path(REPO, "inputs", "MI_DW_persistent_development_annual.csv"),
+dev <- read_csv(rd_path("MI_DW_persistent_development_annual.csv.gz"),
                 col_select = c(fid, starts_with("dev_ha_")), show_col_types = FALSE) |>
   mutate(across(starts_with("dev_ha_"), ~ coalesce(as.numeric(.x), 0)))
 
-# MI attributes and geometry (site name, kommune, field survey).
-mi <- sf::st_read(
-  file.path(REPO, "inputs", "MI_kystlynghei.shp"),
-  query = 'SELECT fid, "områdenav", kommunenum, kommuner, year, "7RA-SJ", "7JB-BT", faktaark FROM MI_kystlynghei',
-  quiet = TRUE
-)
+# MI attributes and geometry (site name, kommune, field survey). The outlines
+# are stored made valid and simplified (5 m) for the web map only.
+mi <- sf::st_read(rd_path("mi_kystlynghei.gpkg"), layer = "mi_kystlynghei", quiet = TRUE)
 mi_attr <- mi |>
   sf::st_drop_geometry() |>
   transmute(
@@ -229,7 +223,7 @@ sites <- sites |>
 
 # Weather before each probable wildfire (python/diagnostics/wildfire_weather.py;
 # ERA5 via Open-Meteo, 30 days before the first FIRMS detection vs 1991-2020)
-wx <- read_csv(file.path(BURN_DIR, "wildfire_weather.csv"), show_col_types = FALSE) |>
+wx <- read_csv(rd_path("wildfire_weather.csv.gz"), show_col_types = FALSE) |>
   mutate(fid = as.integer(sub(";.*$", "", as.character(fids)))) |>
   left_join(mi_attr |> select(fid, kommune, fylke), by = "fid") |>
   mutate(place = paste0(kommune, ", ", fylke)) |>
@@ -246,7 +240,7 @@ key$n_sites      <- nrow(sites)
 key$n_classified <- sum(!is.na(sites$triage_class))
 key$n_excluded   <- sum(is.na(sites$triage_class))
 key$n_field      <- sum(!is.na(sites$field_sj))
-key$n_cal        <- read_csv(out_path("model", "FINAL_AE_SJ_covadj_model_summary.csv"),
+key$n_cal        <- read_csv(rd_path("FINAL_AE_SJ_covadj_model_summary.csv.gz"),
                              show_col_types = FALSE)$analysis_n
 tri <- table(factor(sites$triage_class, levels = TRIAGE_ORDER))
 key$tri          <- tri
@@ -269,7 +263,7 @@ key$succ_low      <- conf_n(SUCC_CLASSES, "Low")
 key$restor_high   <- conf_n(RESTOR_CLASSES, "High")
 key$restor_medium <- conf_n(RESTOR_CLASSES, "Medium")
 key$restor_low    <- conf_n(RESTOR_CLASSES, "Low")
-ye <- read_csv(out_path("temporal_trajectories", "02b_regional_year_effects.csv"), show_col_types = FALSE)
+ye <- read_csv(rd_path("02b_regional_year_effects.csv.gz"), show_col_types = FALSE)
 ye_big <- ye |> filter(n_sites >= 500)   # counties with enough sites to quote
 key$ye_max     <- max(abs(ye_big$year_effect))
 key$ye_max_lab <- with(ye_big[which.max(abs(ye_big$year_effect)), ], paste0(ye_region, " ", year))
@@ -282,7 +276,7 @@ cleared20 <- coalesce(classed$prop_sj34, 0) > 0.2
 key$cleared20_n   <- sum(cleared20)
 key$change_se_cleared20 <- median(classed$sj_change_se[cleared20], na.rm = TRUE)
 key$change_se_other     <- median(classed$sj_change_se[coalesce(classed$n_sj34_12, 0) == 0 & !classed$burn_confirmed], na.rm = TRUE)
-key$moderate_thr  <- read_csv(out_path("temporal_trajectories", "02_triage_threshold_derivation.csv"),
+key$moderate_thr  <- read_csv(rd_path("02_triage_threshold_derivation.csv.gz"),
                               show_col_types = FALSE)$threshold_AE_SJ_units[1]
 key$prio_overgr_high <- sum(sites$priority %in% "Good/moderate condition, overgrowing" &
                               sites$priority_confidence %in% "High")
@@ -316,7 +310,7 @@ nordland <- sites |> filter(fylke == "Nordland", !is.na(triage_class))
 key$nordland_restor <- mean(grepl("opening", nordland$triage_class))
 key$nordland_succ   <- mean(grepl("succession", nordland$triage_class))
 
-ref <- read_csv(out_path("model", "FINAL_AE_SJ_covadj_class_reference_positions.csv"),
+ref <- read_csv(rd_path("FINAL_AE_SJ_covadj_class_reference_positions.csv.gz"),
                 show_col_types = FALSE)
 med <- setNames(ref$median_AE_SJ, ref$sj)
 key$thr_mod    <- 0.5 * (med[["1"]] - med[["2"]])
@@ -432,9 +426,9 @@ key$rx_pre_score <- fc("prescribed_burn", -1, "score"); key$wf_pre_score <- fc("
 # Registered burns (naturtiltak burns-verified pool, duplicates merged): FIRMS in any year up to and
 # including the registered year, and dNBR at the FIRMS date (scar inside or
 # within 250 m of the roughly drawn polygon); python/validation_registered_burns.py
-valf <- jsonlite::read_json(file.path(REPO, "python", "validation_registered_burns", "validation_final.json"),
+valf <- jsonlite::read_json(rd_path("validation_final.json"),
                             simplifyVector = TRUE)
-vsp  <- jsonlite::read_json(file.path(REPO, "python", "validation_registered_burns", "spatial_representativeness.json"),
+vsp  <- jsonlite::read_json(rd_path("spatial_representativeness.json"),
                             simplifyVector = TRUE)
 key$val_features   <- valf$features
 key$val_feat_firms <- valf$features_firms
@@ -474,8 +468,7 @@ key$spruce_fire_ha <- sum(clear$area_SJ34_to_SJ12_picea_burnt_ha)
 key$clear_median  <- median(clear$area_SJ34_to_SJ12_ha)
 key$clear_ge01    <- sum(clear$area_SJ34_to_SJ12_ha >= 0.1 - 1e-9)
 key$clear_top10   <- sum(sort(clear$area_SJ34_to_SJ12_ha, decreasing = TRUE)[1:10]) / key$clear_ha
-pathways <- read_csv(out_path("scrub_clearance", "SJ34_to_SJ12_restorative",
-                              "20_SJ34_to_SJ12_transition_pathways.csv"), show_col_types = FALSE)
+pathways <- read_csv(rd_path("20_SJ34_to_SJ12_transition_pathways.csv.gz"), show_col_types = FALSE)
 key$sj3_to_sj2_share <- pathways$area_ha[pathways$transition == "SJ3 -> SJ2"] / sum(pathways$area_ha)
 key$to_sj1_share     <- sum(pathways$area_ha[grepl("-> SJ1", pathways$transition)]) / sum(pathways$area_ha)
 key$fire_sj34_all_ha <- sum(sites$ha_sj34_burnt, na.rm = TRUE)
@@ -529,9 +522,12 @@ key$graze_moderat_p <- wilcox.test(sj_change ~ I(bt > 1), data = graze_mod)$p.va
 #| include: false
 
 # One point per site (for maps), plus everything shown in the site popups.
+# The site points (st_point_on_surface of the valid full geometry) and the
+# outlines (made valid, simplified with dTolerance = 5) are precomputed by
+# R/export_render_data.R.
 sf::sf_use_s2(FALSE)
-mi_valid <- sf::st_make_valid(mi |> select(fid))
-pts <- sf::st_point_on_surface(mi_valid)
+mi_valid <- mi |> select(fid)
+pts <- sf::st_read(rd_path("mi_kystlynghei.gpkg"), layer = "site_points", quiet = TRUE)
 xy_utm <- sf::st_coordinates(pts)
 xy_ll  <- sf::st_coordinates(sf::st_transform(pts, 4326))
 
@@ -648,21 +644,21 @@ Every site can be explored in the interactive web map (@sec-webmap).
 
 # Data and methods
 
-This section describes the satellite-derived indicators used to assess successional change; management activities are inferred or cross-referenced where possible. Full descriptions, equations and validation are given in the [methodology](kystlynghei_methods.html) [@methods2026], a living document linked from the [Appendix](#sec-appendix-methods) and cited below as "Methodology Section *n*"; each such reference links to the section concerned.
+This section describes the satellite-derived indicators used to assess successional change; management activities are inferred or cross-referenced where possible. Full descriptions, equations and validation are given in the [methodology]({{< meta methods-url >}}) [@methods2026], a living document linked from the [Appendix](#sec-appendix-methods) and cited below as "Methodology Section *n*"; each such reference links to the section concerned.
 
-**Sites and field data.** We analysed `r fmt(key$n_sites)` mapped polygons. Of these, `r fmt(key$n_field)` had valid field successional-stage assessments (made between 2018 and 2025) for calibration, and `r fmt(key$n_classified)` met the criteria for trajectory classification ([Methodology Section 2](kystlynghei_methods.html#section-2)).
+**Sites and field data.** We analysed `r fmt(key$n_sites)` mapped polygons. Of these, `r fmt(key$n_field)` had valid field successional-stage assessments (made between 2018 and 2025) for calibration, and `r fmt(key$n_classified)` met the criteria for trajectory classification ([Methodology Section 2]({{< meta methods-url >}}#section-2)).
 
-**Succession score (AE-SJ).** Each 10 × 10 m pixel's annual AlphaEarth embedding [@alphaearth2025] is converted into a continuous score calibrated so that a typical SJ4 (overgrown) pixel scores 0 and a typical SJ1 (open) pixel scores 1. Pixels are assigned to an SJ-like class using boundaries midway between the class medians ([Methodology Sections 3-4](kystlynghei_methods.html#section-3)).
+**Succession score (AE-SJ).** Each 10 × 10 m pixel's annual AlphaEarth embedding [@alphaearth2025] is converted into a continuous score calibrated so that a typical SJ4 (overgrown) pixel scores 0 and a typical SJ1 (open) pixel scores 1. Pixels are assigned to an SJ-like class using boundaries midway between the class medians ([Methodology Sections 3-4]({{< meta methods-url >}}#section-3)).
 
-**Trajectories.** For each site, a (Theil-Sen) trend [@sen1968] is fitted to its annual median score for 2018-2025. Sites are classed as *moderate* or *strong* *opening* or *succession* when the change over the period exceeds half the distance between the median scores of SJ1 and SJ2 (moderate) or half the distance between the median scores of SJ3 and SJ4 (strong). The SJ1-SJ2 distance is the smallest step between neighbouring classes, and is hereafter referred to as the *SJ1-SJ2 step*; the SJ3-SJ4 distance is `r fmt(key$gap34 / key$gap12, 1)` times as large. In terms of AE-SJ units, sites with a trend-equivalent change ≥ +`r fmt(key$thr_mod, 3)` were labelled moderate *opening* and those ≤ −`r fmt(key$thr_mod, 3)` moderate *succession*; absolute changes ≥ `r fmt(key$thr_strong, 3)` were labelled strong. Smaller changes were designated ‘no strong signal’. Sites with heavy grazing (BT5-BT6), built development, fewer than six years of data or implausible jumps are excluded ([Methodology Section 5](kystlynghei_methods.html#section-5)). Before the trend is fitted, the annual scores are corrected for regional year effects: in each county and year, the typical deviation of all sites from their own trend lines, which reflects weather, snow and the timing of the growing season shared across the region. Each trend is given a confidence level from its 90 % confidence interval (@sec-uncertainty). 
+**Trajectories.** For each site, a (Theil-Sen) trend [@sen1968] is fitted to its annual median score for 2018-2025. Sites are classed as *moderate* or *strong* *opening* or *succession* when the change over the period exceeds half the distance between the median scores of SJ1 and SJ2 (moderate) or half the distance between the median scores of SJ3 and SJ4 (strong). The SJ1-SJ2 distance is the smallest step between neighbouring classes, and is hereafter referred to as the *SJ1-SJ2 step*; the SJ3-SJ4 distance is `r fmt(key$gap34 / key$gap12, 1)` times as large. In terms of AE-SJ units, sites with a trend-equivalent change ≥ +`r fmt(key$thr_mod, 3)` were labelled moderate *opening* and those ≤ −`r fmt(key$thr_mod, 3)` moderate *succession*; absolute changes ≥ `r fmt(key$thr_strong, 3)` were labelled strong. Smaller changes were designated ‘no strong signal’. Sites with heavy grazing (BT5-BT6), built development, fewer than six years of data or implausible jumps are excluded ([Methodology Section 5]({{< meta methods-url >}}#section-5)). Before the trend is fitted, the annual scores are corrected for regional year effects: in each county and year, the typical deviation of all sites from their own trend lines, which reflects weather, snow and the timing of the growing season shared across the region. Each trend is given a confidence level from its 90 % confidence interval (@sec-uncertainty). 
 
-**Burns.** Burns are found in two steps ([Methodology Section 7](kystlynghei_methods.html#section-7)). NASA FIRMS active-fire detections [@firms_nasa] from four satellite products (VIIRS on NOAA-20, Suomi NPP and NOAA-21 [@schroeder2014], and MODIS [@giglio2016]) are first used to screen the MI sites for burn events, including the timing of the burn. Sentinel-2 imagery [@sentinel2_esa], accessed through Microsoft Planetary Computer [@planetary_computer], is then used to identify the burn scar. For each fire detected, the normalised burn ratio (NBR) [@key2006] in the weeks after the detection is compared, pixel by pixel, with the same season of the previous year, a burn scar being defined as a patch of pixels of at least 0.25 ha whose NBR dropped clearly (dNBR) between the detection and the previous year. Burns are provisionally separated by the date of the FIRMS detection: a burn with any detection in June, July or August is treated as a probable wildfire, and all other burns, which fall in the lyngbrenning season in late winter and spring, as probable prescribed burns.
+**Burns.** Burns are found in two steps ([Methodology Section 7]({{< meta methods-url >}}#section-7)). NASA FIRMS active-fire detections [@firms_nasa] from four satellite products (VIIRS on NOAA-20, Suomi NPP and NOAA-21 [@schroeder2014], and MODIS [@giglio2016]) are first used to screen the MI sites for burn events, including the timing of the burn. Sentinel-2 imagery [@sentinel2_esa], accessed through Microsoft Planetary Computer [@planetary_computer], is then used to identify the burn scar. For each fire detected, the normalised burn ratio (NBR) [@key2006] in the weeks after the detection is compared, pixel by pixel, with the same season of the previous year, a burn scar being defined as a patch of pixels of at least 0.25 ha whose NBR dropped clearly (dNBR) between the detection and the previous year. Burns are provisionally separated by the date of the FIRMS detection: a burn with any detection in June, July or August is treated as a probable wildfire, and all other burns, which fall in the lyngbrenning season in late winter and spring, as probable prescribed burns.
 
 **Scrub and tree clearance.** Transitions from SJ3/SJ4-like conditions in the 2018–2019 baseline to SJ1/SJ2-like conditions in the 2024–2025 endpoint were treated as indicators of woody-vegetation reduction, potentially associated with clearance or burning. Tree removal is the SJ4-like pixels together with all pixels classified as *Picea* on the Forest Paths tree genus map [@forestpaths], scrub removal is the remaining SJ3-like pixels. Scrub pixels inside a mapped burn are reported as *coinciding with a burn* as the method cannot distinguish between burning and mechanical clearance (see @sec-disc-burns).
 
-**Registered management actions (*naturtiltak*).** Miljødirektoratet's register of nature management measures (*naturtiltak*) records burning and scrub and tree clearance funded through the grant scheme for threatened nature types, with the polygon and year of each measure. It was used to develop and validate the burn and clearance methods: the burn-mapping thresholds were chosen against 193 registered burns, and the AE-SJ clearance response was tested against 229 registered clearance actions ([Methodology Sections 11.3-11.4](kystlynghei_methods.html#section-11-3)). The register was not used to calibrate the succession score.
+**Registered management actions (*naturtiltak*).** Miljødirektoratet's register of nature management measures (*naturtiltak*) records burning and scrub and tree clearance funded through the grant scheme for threatened nature types, with the polygon and year of each measure. It was used to develop and validate the burn and clearance methods: the burn-mapping thresholds were chosen against 193 registered burns, and the AE-SJ clearance response was tested against 229 registered clearance actions ([Methodology Sections 11.3-11.4]({{< meta methods-url >}}#section-11-3)). The register was not used to calibrate the succession score.
 
-**Grazing and development.** Among eligible sites with field SJ1–SJ3 and good or moderate field condition, we compared trend-equivalent change between BT1 (no grazing) and BT2–BT3 (moderate grazing) using a two-sided Wilcoxon test and Hodges–Lehmann estimate ([Methodology Section 6](kystlynghei_methods.html#section-6)). Loss to development is taken from persistent transitions from natural land cover to built land cover in Dynamic World land cover classifications [@brown2022] ([Methodology Section 9](kystlynghei_methods.html#section-9)).
+**Grazing and development.** Among eligible sites with field SJ1–SJ3 and good or moderate field condition, we compared trend-equivalent change between BT1 (no grazing) and BT2–BT3 (moderate grazing) using a two-sided Wilcoxon test and Hodges–Lehmann estimate ([Methodology Section 6]({{< meta methods-url >}}#section-6)). Loss to development is taken from persistent transitions from natural land cover to built land cover in Dynamic World land cover classifications [@brown2022] ([Methodology Section 9]({{< meta methods-url >}}#section-9)).
 
 # Results
 
@@ -711,11 +707,11 @@ headline |>
 
 ## Model performance
 
-The model was validated by cross-validation on the calibration samples and by comparison with the field assessment of each site in its survey year ([Methodology Section 11](kystlynghei_methods.html#section-11)). The main figures are summarised here. @fig-model-sj shows how the calibration samples of each field class are spread along the AE-SJ score. The class medians are in the correct order and the middle halves of the endpoint classes, SJ1 and SJ4, are far apart. Neighbouring classes overlap, however: the middle halves of SJ1 and SJ2 overlap, and the ranges of all neighbouring classes overlap widely, so a single pixel's score does not determine its class.
+The model was validated by cross-validation on the calibration samples and by comparison with the field assessment of each site in its survey year ([Methodology Section 11]({{< meta methods-url >}}#section-11)). The main figures are summarised here. @fig-model-sj shows how the calibration samples of each field class are spread along the AE-SJ score. The class medians are in the correct order and the middle halves of the endpoint classes, SJ1 and SJ4, are far apart. Neighbouring classes overlap, however: the middle halves of SJ1 and SJ2 overlap, and the ranges of all neighbouring classes overlap widely, so a single pixel's score does not determine its class.
 
 - **Order of the stages:** in every cross-validation fold, the SJ1-SJ4 medians kept their correct order. Endpoint classes (SJ1 vs SJ4) were separated with an AUC of 0.98-0.99, and the rank correlation across all field SJ classes was 0.58-0.66 on held-out data.
 - **Site-level agreement:** for `r fmt(key$val_n)` sites, the modal pixel class in the survey year matched the field class exactly in `r pct(key$val_agree)` of cases (Cohen's κ [@cohen1960] = `r fmt(key$val_kappa, 2)`; linearly weighted κ = `r fmt(key$val_wkappa, 2)`). Agreement to within one class was `r pct(key$val_within1)`.
-- **Gross disagreements:** only `r key$val_gross` sites were given opposing AE-SJ classes relative to their field assessments (e.g. AE-SJ1 vs SJ4). Visual inspection of historical high-resolution imagery [@esri_wayback] suggested potential inconsistencies in some field records and mixed-pixel effects in very small polygons ([Methodology Section 11.2](kystlynghei_methods.html#section-11-2)).
+- **Gross disagreements:** only `r key$val_gross` sites were given opposing AE-SJ classes relative to their field assessments (e.g. AE-SJ1 vs SJ4). Visual inspection of historical high-resolution imagery [@esri_wayback] suggested potential inconsistencies in some field records and mixed-pixel effects in very small polygons ([Methodology Section 11.2]({{< meta methods-url >}}#section-11-2)).
 
 ```{r fig-model-sj}
 #| label: fig-model-sj
@@ -723,7 +719,7 @@ The model was validated by cross-validation on the calibration samples and by co
 #| fig-height: 3.2
 
 SJ_NAMES <- c("1" = "SJ1 intact", "2" = "SJ2 fallow phase", "3" = "SJ3 early regrowth", "4" = "SJ4 late regrowth")
-cal_box <- read_csv(out_path("model", "FINAL_AE_SJ_covadj_point_scores.csv"),
+cal_box <- read_csv(rd_path("FINAL_AE_SJ_covadj_point_scores.csv.gz"),
                     col_select = c(sj, AE_SJ), show_col_types = FALSE) |>
   filter(is.finite(AE_SJ), sj %in% 1:4) |>
   group_by(sj) |>
@@ -769,11 +765,11 @@ The validation results thus suggest that the model is well suited as an indicato
 
 Several sources of uncertainty affect the results. Two can be quantified for every site and are reported below: uncertainty in where a site lies on the gradient in a given year, and uncertainty in its trend over the period.
 
-**Uncertainty in a site's score.**  The AE-SJ score is calibrated so that a typical SJ1 site scores 1 and a typical SJ4 site scores 0. Individual pixels do not land exactly on their class value, though. Two patches of heath that surveyors both recorded as SJ3 can get noticeably different scores, because the satellite data and the vegetation vary in ways the four classes do not capture. How much the scores vary within each class is known from the calibration samples, and is larger for SJ3 and SJ4 than for SJ1 ([Methodology Table 1](kystlynghei_methods.html#table-1)). This variation includes real differences between sites of the same class and uncertainty in the field labels, so it is not a measured error of each pixel. We used it as an approximate uncertainty of each pixel's score, and combined it over all the pixels in a site to estimate how precisely the site's mean score is known in a given year. The median standard error is `r step12(key$model_se_med)` of the SJ1-SJ2 step. It is larger for small sites, which have fewer pixels, and for sites dominated by SJ3- and SJ4-like pixels. The combination treats pixels as independent. Because errors in neighbouring pixels are correlated, these standard errors are too small, and they should be read as an approximate indication rather than a validated uncertainty ([Methodology Section 12](kystlynghei_methods.html#section-12)).
+**Uncertainty in a site's score.**  The AE-SJ score is calibrated so that a typical SJ1 site scores 1 and a typical SJ4 site scores 0. Individual pixels do not land exactly on their class value, though. Two patches of heath that surveyors both recorded as SJ3 can get noticeably different scores, because the satellite data and the vegetation vary in ways the four classes do not capture. How much the scores vary within each class is known from the calibration samples, and is larger for SJ3 and SJ4 than for SJ1 ([Methodology Table 1]({{< meta methods-url >}}#table-1)). This variation includes real differences between sites of the same class and uncertainty in the field labels, so it is not a measured error of each pixel. We used it as an approximate uncertainty of each pixel's score, and combined it over all the pixels in a site to estimate how precisely the site's mean score is known in a given year. The median standard error is `r step12(key$model_se_med)` of the SJ1-SJ2 step. It is larger for small sites, which have fewer pixels, and for sites dominated by SJ3- and SJ4-like pixels. The combination treats pixels as independent. Because errors in neighbouring pixels are correlated, these standard errors are too small, and they should be read as an approximate indication rather than a validated uncertainty ([Methodology Section 12]({{< meta methods-url >}}#section-12)).
 
 This uncertainty affects where a site is placed on the gradient, and therefore its class, more than its trend. Much of it is probably a consistent offset: a site whose vegetation makes it look more overgrown than its field class is likely to look so in every year. If such an offset stays roughly constant from year to year, it affects the trend much less than the score itself. 
 
-**Uncertainty in a site's trend.** The annual scores of a site scatter around its trend. Part of this scatter is shared by all sites in a region: weather, snow and the timing of the growing season shift the scores of a whole county up or down in some years (up to `r step12(key$ye_max)` of the SJ1-SJ2 step, in `r key$ye_max_lab`). These regional year effects were estimated as the median deviation of a county's sites from their own trend lines in each year, and removed before the trends were fitted. As they are measured around each site's own trend, steady regional trends are kept. A real change shared by a whole county within a single year, such as widespread drought damage to heather, would however be partly removed. Without the correction, 89 % of sites would keep the same triage class ([Methodology Section 5](kystlynghei_methods.html#section-5)). What remains is the scatter of each site around its trend. Eight values give only a rough estimate of a single site's scatter, so it was combined with the typical scatter of similar sites, in the same county and field SJ class, by empirical Bayes [@smyth2004]. Each site's change over 2018-2025 then has a standard error (median `r step12(key$change_se_med)` of the SJ1-SJ2 step) and a 90 % confidence interval, which is about the same size as the moderate triage threshold (`r step12(key$moderate_thr)`). Each site with a *succession* or *opening* trend was therefore given a confidence level:
+**Uncertainty in a site's trend.** The annual scores of a site scatter around its trend. Part of this scatter is shared by all sites in a region: weather, snow and the timing of the growing season shift the scores of a whole county up or down in some years (up to `r step12(key$ye_max)` of the SJ1-SJ2 step, in `r key$ye_max_lab`). These regional year effects were estimated as the median deviation of a county's sites from their own trend lines in each year, and removed before the trends were fitted. As they are measured around each site's own trend, steady regional trends are kept. A real change shared by a whole county within a single year, such as widespread drought damage to heather, would however be partly removed. Without the correction, 89 % of sites would keep the same triage class ([Methodology Section 5]({{< meta methods-url >}}#section-5)). What remains is the scatter of each site around its trend. Eight values give only a rough estimate of a single site's scatter, so it was combined with the typical scatter of similar sites, in the same county and field SJ class, by empirical Bayes [@smyth2004]. Each site's change over 2018-2025 then has a standard error (median `r step12(key$change_se_med)` of the SJ1-SJ2 step) and a 90 % confidence interval, which is about the same size as the moderate triage threshold (`r step12(key$moderate_thr)`). Each site with a *succession* or *opening* trend was therefore given a confidence level:
 
 - **High:** the interval lies wholly beyond the moderate threshold in the direction of the class, so the site has at least a moderate trend in that direction.
 - **Medium:** the interval excludes zero, so the direction is clear but the size of the change is not.
@@ -958,7 +954,7 @@ Annual timelapse, 2018-2025, of a site classed as *succession* (top) and one cla
 ::: {.callout-note collapse="true" icon="false"}
 ## Analysis code: trajectory classification
 
-Inputs: annual site statistics [`python/mi_aesj_annual_results/MI_aesj_annual_<year>.csv`](../python/mi_aesj_annual_results/) and class reference medians [`outputs/model/FINAL_AE_SJ_covadj_class_reference_positions.csv`](../outputs/model/FINAL_AE_SJ_covadj_class_reference_positions.csv). Site-level results: [`outputs/temporal_trajectories/07_site_level_results_ALL.csv`](../outputs/temporal_trajectories/07_site_level_results_ALL.csv). Full module: [`R/modules/temporal_trajectories.R`](../R/modules/temporal_trajectories.R). The code below, run from the repository root, reproduces the published trajectory classes exactly.
+Inputs: annual site statistics `python/mi_aesj_annual_results/MI_aesj_annual_<year>.csv` and class reference medians `outputs/model/FINAL_AE_SJ_covadj_class_reference_positions.csv`. Site-level results: `outputs/temporal_trajectories/07_site_level_results_ALL.csv`. Full module: [`R/modules/temporal_trajectories.R`]({{< meta repo-url >}}/blob/main/R/modules/temporal_trajectories.R). The code below, run from the repository root, reproduces the published trajectory classes exactly.
 
 ```{r}
 #| eval: false
@@ -1041,7 +1037,7 @@ ggplot(g, aes(x = .data[[md_col]], y = .data[[grp_col]])) +
 ::: {.callout-note collapse="true" icon="false"}
 ## Analysis code: grazing comparison
 
-Inputs: [`outputs/temporal_trajectories/07_site_level_results_ALL.csv`](../outputs/temporal_trajectories/07_site_level_results_ALL.csv) and the MI polygons (`inputs/MI_kystlynghei.shp`, field successional stage). Full module: [`R/modules/grazing.R`](../R/modules/grazing.R). The code below reproduces the reported test exactly.
+Inputs: `outputs/temporal_trajectories/07_site_level_results_ALL.csv` and the MI polygons (`inputs/MI_kystlynghei.shp`, field successional stage). Full module: [`R/modules/grazing.R`]({{< meta repo-url >}}/blob/main/R/modules/grazing.R). The code below reproduces the reported test exactly.
 
 ```{r}
 #| eval: false
@@ -1132,7 +1128,7 @@ fires |>
 #| label: fig-burn-example
 #| fig-cap: "A prescribed burn at site 2679, mapped with Sentinel-2. Left: the spring before the burn. Middle: a month after the FIRMS detection (13 April 2019), with the mapped burn outlined in red-orange. Right: the same season in 2025. White line: the MI polygon."
 
-knitr::include_graphics(here::here("report", "fig_burn_example_2679_2019_recovery.png"))
+knitr::include_graphics("fig_burn_example_2679_2019_recovery.png")
 ```
 
 **Prescribed burns and wildfires.** As a provisional separation, burns are classed by the date of their FIRMS detections. `r fmt(key$rx_siteyears)` burns on `r fmt(key$rx_sites)` sites (`r fmt(key$rx_ha)` ha) were detected only outside June-August, in the lyngbrenning season, and are probably prescribed burns. `r fmt(key$wf_siteyears)` burns on `r fmt(key$wf_sites)` sites (`r fmt(key$wf_ha)` ha) had a detection in June-August and are probably wildfires (years: `r key$wf_years`). The 2021 wildfire on Sotra (site 298) alone makes up `r fmt(key$wf_298_ha)` ha. `r fmt(key$fire_both_sites)` sites had both a spring burn and a summer fire in different years. Separating burn type by time of year cannot recognise wildfires in spring, such as fires that escape during a dry April (for example, the fire at Lindesnes, shown in @tbl-fires-largest as a prescribed burn, was in fact a wildfire but is mislabelled ‘probable prescribed’ by this rule), so some burns classed here as prescribed may have been uncontrolled (@sec-disc-burns). We will work to refine this classification in future updates of the report.
@@ -1201,7 +1197,7 @@ fires |>
 ::: {.callout-note collapse="true" icon="false"}
 ## Analysis code: burn detection
 
-Inputs: the FIRMS detections in [`inputs/active_fires/active_fires_2018_2025.gpkg`](../inputs/active_fires/) and Sentinel-2 L2A from Microsoft Planetary Computer. Burns are mapped by [`python/mi_dnbr_burn.py`](../python/mi_dnbr_burn.py), which writes [`python/mi_dnbr_burn_results/MI_burns.csv`](../python/mi_dnbr_burn_results/MI_burns.csv) (one row per burnt site-year) and the AE-SJ trajectories of burnt and unburnt pixels. Loading the detections and the distance rule are in [`python/active_fires.py`](../python/active_fires.py). The R code below reproduces the burn statistics and the effect on succession.
+Inputs: the FIRMS detections in `inputs/active_fires/active_fires_2018_2025.gpkg` and Sentinel-2 L2A from Microsoft Planetary Computer. Burns are mapped by [`python/mi_dnbr_burn.py`]({{< meta repo-url >}}/blob/main/python/mi_dnbr_burn.py), which writes `python/mi_dnbr_burn_results/MI_burns.csv` (one row per burnt site-year) and the AE-SJ trajectories of burnt and unburnt pixels. Loading the detections and the distance rule are in [`python/active_fires.py`]({{< meta repo-url >}}/blob/main/python/active_fires.py). The R code below reproduces the burn statistics and the effect on succession.
 
 ```{r}
 #| eval: false
@@ -1278,7 +1274,7 @@ bind_rows(
 ```
 
 
-- **Some of the cleared area may be prescribed burning.** Only burns mapped after a FIRMS detection are separated from clearance, and FIRMS detects few small lyngbrenning fires: it detected a fire at only `r pct(key$val_feat_firms / key$val_features, 0)` of the sites with registered burning, and least often where the burnt area was small ([Methodology Section 11.4](kystlynghei_methods.html#section-11-4)). Scrub removed by a burn too small to trigger FIRMS is therefore counted here as clearance. This applies above all to SJ3-like heath that became SJ2- or SJ1-like, the change a prescribed burn produces, so part of the scrub removal is probably lyngbrenning.
+- **Some of the cleared area may be prescribed burning.** Only burns mapped after a FIRMS detection are separated from clearance, and FIRMS detects few small lyngbrenning fires: it detected a fire at only `r pct(key$val_feat_firms / key$val_features, 0)` of the sites with registered burning, and least often where the burnt area was small ([Methodology Section 11.4]({{< meta methods-url >}}#section-11-4)). Scrub removed by a burn too small to trigger FIRMS is therefore counted here as clearance. This applies above all to SJ3-like heath that became SJ2- or SJ1-like, the change a prescribed burn produces, so part of the scrub removal is probably lyngbrenning.
 - **Most clearance is partial.** `r pct(key$sj3_to_sj2_share, 0)` of the cleared area moved from SJ3-like to SJ2-like condition, and only `r pct(key$to_sj1_share, 0)` reached SJ1. This fits clearance followed by recovering heath, but it also means much of the signal lies close to the SJ2/SJ3 class boundary, which is subject to relatively high classification uncertainty.
 - **Most sites have little cleared area.** The median cleared area per site is `r fmt(key$clear_median, 2)` ha, and  `r fmt(key$clear_ge01)` sites (`r pct(key$clear_ge01 / key$clear_sites, 0)`) have 0.1 ha or more (@fig-clear-size). The ten largest sites account for `r pct(key$clear_top10, 0)` of the total cleared area. Single-pixel signals (0.01 ha) are within the noise of the method and should not be read as confirmed clearance.
 - **Spruce removal is modest.** `r fmt(key$spruce_ha, 1)` ha of spruce was removed across `r fmt(key$spruce_sites)` sites. By comparison, the ForestPaths data indicate that spruce is present in `r fmt(key$sites_with_spruce)` of the `r fmt(key$n_sites)` sites (`r pct(key$sites_with_spruce / key$n_sites, 0)`), so spruce has been removed from only a small fraction of the sites where it is present.
@@ -1303,7 +1299,7 @@ These results deliberately include only sites whose overall trajectory is *openi
 ::: {.callout-note collapse="true" icon="false"}
 ## Analysis code: scrub and tree clearance
 
-Inputs: [`outputs/temporal_trajectories/07_site_level_results_ALL.csv`](../outputs/temporal_trajectories/07_site_level_results_ALL.csv) (per-site pixel transition counts from the national scoring run). Headline population: [`outputs/scrub_clearance/SJ34_to_SJ12_restorative/15_restorative_sites_SJ34_to_SJ12.csv`](../outputs/scrub_clearance/SJ34_to_SJ12_restorative/15_restorative_sites_SJ34_to_SJ12.csv). Full module: [`R/modules/scrub_clearance.R`](../R/modules/scrub_clearance.R). The R code below reproduces the headline figures exactly.
+Inputs: `outputs/temporal_trajectories/07_site_level_results_ALL.csv` (per-site pixel transition counts from the national scoring run). Headline population: `outputs/scrub_clearance/SJ34_to_SJ12_restorative/15_restorative_sites_SJ34_to_SJ12.csv`. Full module: [`R/modules/scrub_clearance.R`]({{< meta repo-url >}}/blob/main/R/modules/scrub_clearance.R). The R code below reproduces the headline figures exactly.
 
 ```{r}
 #| eval: false
@@ -1440,8 +1436,7 @@ encode_values <- function(d) {
   }
   out
 }
-outline_sf <- mi_valid |>
-  sf::st_simplify(dTolerance = 5, preserveTopology = TRUE) |>
+outline_sf <- mi_valid |>   # already valid and simplified (R/export_render_data.R)
   sf::st_collection_extract("POLYGON") |>
   sf::st_cast("MULTIPOLYGON") |>
   sf::st_transform(4326)
@@ -1745,7 +1740,7 @@ Three limitations affect the trajectory results:
 
 ## Burns {#sec-disc-burns}
 
-**The effect of burning.** Burnt heath became clearly more open than the unburnt heath in the same site, by `r step12(key$eff_rx1)` of the distance between the typical SJ2 and SJ1 score in the first year after a prescribed burn, increasing to about `r step12(key$eff_rx4)` after four years, with a similar response after the summer fires. This is of the same order as the response measured in registered *naturtiltak* burns ([Methodology Section 11.4](kystlynghei_methods.html#section-11-4)). Both spring and summer fires burnt mostly heath that was still open, and moved it from SJ2-like towards SJ1-like condition. AE-SJ scores are consistent with the intended management effect, i.e. prescribed burning opening up heathland that is starting to overgrow, but they also indicate that burning is mostly applied to heath that is still open rather than to heath that is already overgrown.
+**The effect of burning.** Burnt heath became clearly more open than the unburnt heath in the same site, by `r step12(key$eff_rx1)` of the distance between the typical SJ2 and SJ1 score in the first year after a prescribed burn, increasing to about `r step12(key$eff_rx4)` after four years, with a similar response after the summer fires. This is of the same order as the response measured in registered *naturtiltak* burns ([Methodology Section 11.4]({{< meta methods-url >}}#section-11-4)). Both spring and summer fires burnt mostly heath that was still open, and moved it from SJ2-like towards SJ1-like condition. AE-SJ scores are consistent with the intended management effect, i.e. prescribed burning opening up heathland that is starting to overgrow, but they also indicate that burning is mostly applied to heath that is still open rather than to heath that is already overgrown.
 
 **Prescribed burning versus uncontrolled fire.** This release separates burns by the date of the FIRMS detection. Lyngbrenning is carried out outside the growing season, in practice in late winter and spring, and the FIRMS detections of burns registered in *naturtiltak* fell in that season. A fire in June, July or August is therefore almost certainly uncontrolled. The rule classes the 2021 Sotra fire correctly as a wildfire, and classes `r fmt(key$wf_siteyears)` of `r fmt(key$fire_siteyears)` burns as probable wildfires. The rule has two known weaknesses:
 
@@ -1756,7 +1751,7 @@ Three limitations affect the trajectory results:
 
 ## Clearance and spruce
 
-The clearance result is more robust in aggregate than for single sites. It also includes an unknown share of small prescribed burns that FIRMS did not detect (@sec-clearance), so it should be read as the area opened by clearance or by small burns, not by clearance alone. Most of the cleared area is concentrated on relatively few sites, and many sites register only a few pixels. Reporting should use a minimum area (for example 0.1 ha), giving `r fmt(key$clear_ge01)` sites rather than `r fmt(key$clear_sites)`. Against registered *naturtiltak* clearance, the method detected most registered tree clearance and a majority of scrub clearance ([Methodology Section 11.3](kystlynghei_methods.html#section-11-3)).
+The clearance result is more robust in aggregate than for single sites. It also includes an unknown share of small prescribed burns that FIRMS did not detect (@sec-clearance), so it should be read as the area opened by clearance or by small burns, not by clearance alone. Most of the cleared area is concentrated on relatively few sites, and many sites register only a few pixels. Reporting should use a minimum area (for example 0.1 ha), giving `r fmt(key$clear_ge01)` sites rather than `r fmt(key$clear_sites)`. Against registered *naturtiltak* clearance, the method detected most registered tree clearance and a majority of scrub clearance ([Methodology Section 11.3]({{< meta methods-url >}}#section-11-3)).
 ## Grazing
 
 Sites with field evidence of grazing had slightly less negative AE-SJ trends than sites without such evidence, but this observational association is confounded by field condition. A better test requires grazing data that are independent of the condition assessment, such as livestock registers or grazing subsidy data. Grazing is also the measure where the score is least informative. Heavy grazing pushes heath towards grassland rather than woodland, a trajectory the succession score does not measure.
@@ -1783,11 +1778,14 @@ All results are produced by the analysis pipeline in the project repository (`ky
 ```{r export}
 #| include: false
 
-export_dir <- here::here("report", "data")
-dir.create(export_dir, showWarnings = FALSE, recursive = TRUE)
-map_dat |>
-  select(-faktaark) |>
-  write_csv(file.path(export_dir, "kystlynghei_site_results_2018_2025.csv"))
+# Only inside the repo: a render elsewhere does not write files.
+if (IN_REPO) {
+  export_dir <- "data"
+  dir.create(export_dir, showWarnings = FALSE, recursive = TRUE)
+  map_dat |>
+    select(-faktaark) |>
+    write_csv(file.path(export_dir, "kystlynghei_site_results_2018_2025.csv"))
+}
 ```
 
 # References {.unnumbered}
@@ -1799,7 +1797,7 @@ map_dat |>
 
 ## Methodology {#sec-appendix-methods .unnumbered}
 
-The full methodology, including the equations, parameters, validation results and known limitations, is a separate living document that is updated together with the analysis: **[Coastal heathland succession: methodology](kystlynghei_methods.html)**. Its section, table and figure numbers are kept stable, so the references in this report ("Methodology Section *n*") link directly to the relevant part.
+The full methodology, including the equations, parameters, validation results and known limitations, is a separate living document that is updated together with the analysis: **[Coastal heathland succession: methodology]({{< meta methods-url >}})**. Its section, table and figure numbers are kept stable, so the references in this report ("Methodology Section *n*") link directly to the relevant part.
 
 ## Author contributions {.unnumbered}
 

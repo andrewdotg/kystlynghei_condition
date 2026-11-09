@@ -23,6 +23,24 @@ After editing, render it with `quarto render report/kystlynghei_methods.qmd` and
 its sections by anchor (`kystlynghei_methods.html#section-11-4`, `#table-1`, `#figure-2`),
 so keep the `{#section-n}` ids on the headings when editing.
 
+**Report data.** The report reads only from `report/render_data/` (about 27 MB:
+gzip-compressed tables trimmed to the columns used, the MI outlines and site
+points, and a copy of `R/theme.R`; see `report/render_data/README.md`), not from
+the pipeline outputs. Refresh it after each pipeline run, from the repo root:
+`Rscript R/export_render_data.R`. To render the report outside the repo (for
+example in another Quarto site), copy these from `report/` and render the qmd:
+
+- `kystlynghei_condition_report.qmd`
+- `render_data/`
+- `img/`
+- `fig_burn_example_2679_2019_recovery.png`
+- `references.bib`
+- `ambio.csl`
+
+Links to the methodology and the repository are absolute; their base URLs are
+the `methods-url` and `repo-url` fields in the qmd's YAML header. Only a render
+inside the repo writes the site table to `report/data/`.
+
 ## Pipeline
 
 ```
@@ -111,12 +129,15 @@ naturtiltak pool, FIRMS-triggered mapping, 5 km controls).
 ## Repository layout
 
 - `R/` - model, validation, shared setup (`00_setup.R`), theme (`theme.R`).
+- `R/export_render_data.R` - copies the data the report reads into `report/render_data/`.
 - `R/modules/` - MI-wide analyses. `grazing.R` and `scrub_clearance.R` use
   in-memory objects from `temporal_trajectories.R` and must run after it in
   the same session.
 - `R/naturTiltak/` - analyses of the naturtiltak register.
 - `python/` - national scoring, active fires, burn mapping, burn validation;
   `python/diagnostics/` - figure scripts for the report and methodology.
+- `report/` - report and methodology sources; `report/render_data/` holds the
+  report's data (generated, but tracked so the report renders without the pipeline).
 
 `R/00_setup.R` resolves `REPO_ROOT` (this folder) and `PROJECT_ROOT` (the
 data folder above it; override with `KYSTLYNGHEI_PROJECT_ROOT`).

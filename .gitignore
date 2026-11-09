@@ -63,6 +63,11 @@ python/validation_registered_burns/
 *.npz
 *.gpkg
 
+# Data bundled with the report so it renders without the pipeline outputs
+# (written by R/export_render_data.R)
+!report/render_data/
+!report/render_data/*.gpkg
+
 # Local input data dropped in by hand (e.g. inputs/MI_kystlynghei.shp) -
 # already covered by the *.shp/*.csv/etc. patterns above, listed here too so
 # the whole folder's intent is obvious at a glance.
