@@ -1,12 +1,16 @@
 ---
 title: "Coastal heathland succession: methodology"
-subtitle: "Methods, validation and uncertainty for the satellite monitoring of mapped Norwegian coastal heathland [NO_KYST_001]"
+subtitle: "Methods, validation and uncertainty for the satellite monitoring of mapped Norwegian coastal heathland"
 author:
   - name: Andrew Møller Gray
     affiliations:
       - name: "Norwegian Institute for Nature Research (NINA)"
 date: last-modified
 date-format: "D MMMM YYYY"
+code-links:
+  - text: Code repository
+    icon: github
+    href: https://github.com/andrewdotg/kystlynghei_condition
 lang: en-GB
 format:
   html:
@@ -16,7 +20,7 @@ format:
     toc-depth: 2
     smooth-scroll: true
     number-sections: false
-    lightbox: true
+    lightbox: false
     anchor-sections: true
 ---
 
@@ -26,7 +30,7 @@ updated together with the analysis, and the date above shows when it last change
 numbers are kept stable so that references from the report remain valid.
 :::
 
-# 1. Purpose and overview {#section-1}
+# 1. Purpose and overview {#section-1 .unnumbered}
 
 The workflow described here provides a nationally consistent, spatially explicit assessment of the condition of mapped Norwegian coastal heathland (*kystlynghei*) that can be used to monitor condition changes on an annual basis. Condition is assessed primarily along a management-relevant axis for this semi-natural, culturally maintained ecosystem: the successional gradient from open, actively managed heath towards scrub and woodland that follows the abandonment of traditional burning and grazing. This gradient is formalised in the field-mapping variable *7RA-SJ* (successional stage), which divides heathland into four classes: SJ1, intact; SJ2, fallow phase (*brakkleggingsfase*); SJ3, early regrowth succession phase (*tidlig gjenvekstsuksesjonsfase*); and SJ4, late regrowth succession phase (*sein gjenvekstsuksesjonsfase*).
 
@@ -44,7 +48,7 @@ The workflow consists of a central calibration model and a set of analytical mod
 
 :::
 
-# 2. Data sources {#section-2}
+# 2. Data sources {#section-2 .unnumbered}
 
 **Heathland polygons and field assessments.** The spatial units of analysis are the 14,330 coastal heathland polygons mapped according to the *Miljødirektoratets* nature-type mapping programme (*Miljødirektoratets instruks (Miljødirektoratet)*, hereafter MI). Each polygon carries the field-assessed successional stage (7RA-SJ), the year of assessment, an ordinal grazing-pressure class (BT1-BT6) and the overall condition assessment (*tilstand*). A valid 7RA-SJ assessment from the period 2018-2025 is available for 13,853 polygons (96.7 %). For model calibration, polygons were randomly sampled in 0.25 ha patches, yielding 201,215 field-labelled samples (SJ1: 52,224; SJ2: 85,243; SJ3: 42,607; SJ4: 21,141) after the exclusions described in [Section 3](#section-3).
 
@@ -58,7 +62,7 @@ The workflow consists of a central calibration model and a set of analytical mod
 
 **Spruce distribution.** A national 10 m binary mask of *Picea* presence, derived from the Forest Paths tree-genus map (De Keersmaecker et al. 2024), was resampled once onto the analysis grid and used to identify removal of spruce. This dataset is derived on 2020 satellite data.
 
-# 3. Central model: the AE-SJ succession score {#section-3}
+# 3. Central model: the AE-SJ succession score {#section-3 .unnumbered}
 
 The AE-SJ score is a linear projection of the AlphaEarth embedding onto an axis running from the field-observed SJ4 condition to the field-observed SJ1 condition, after an unsupervised adjustment for the covariance structure of the embedding space.
 
@@ -93,13 +97,13 @@ The score is not truncated; values above 1 or below 0 indicate conditions more o
 
 *Validation.* The model was evaluated under grouped (by parent polygon), leave-one-year-out and spatial-block cross-validation, using rank correlation with the ordinal field class and the separability of the SJ1 and SJ4 endpoints as criteria. In every cross-validation scheme, the covariance adjustment, the endpoint prototypes and the two calibration anchors were re-estimated from the training folds only, and the held-out samples were scored with the model fitted to the training folds, so that no held-out sample contributed to the model used to score it. The parameters of the model, comprising the $64 \times 64$ adjustment matrix, the 64-dimensional direction vector and the two calibration anchors, are fixed and are applied unchanged in all subsequent modules. The full validation results are reported in [Section 11](#section-11).
 
-# 4. Annual national scoring {#section-4}
+# 4. Annual national scoring {#section-4 .unnumbered}
 
 For each polygon and each year from 2018 to 2025, all embedding pixels whose centres fall within the polygon were scored with the central model and assigned to an SJ-like class. From these per-pixel values, the following polygon-level quantities were derived for each year: the median, mean and dispersion of AE-SJ; the number and proportion of pixels in each SJ-like class; and the normalised Shannon entropy of those four proportions, as a measure of structural heterogeneity (0 = all pixels in one class; 1 = equal proportions in all four classes).
 
 To characterise change at the pixel level, a baseline score was computed for each pixel as the mean of its separately scored 2018 and 2019 values, and a final score as the mean of its 2024 and 2025 values. Averaging two years at each end reduces the influence of single-year noise in the embeddings. Each pixel was assigned an SJ-like class at baseline and at the final state, giving a 4 × 4 transition matrix per polygon. Transition matrices were accepted for analysis only where at least five valid pixels were available and the transition proportions summed to unity.
 
-# 5. Temporal trajectories and triage classification {#section-5}
+# 5. Temporal trajectories and triage classification {#section-5 .unnumbered}
 
 The annual polygon-median AE-SJ series was used to estimate the direction and magnitude of change over the monitoring period. The trend was estimated with the Theil-Sen estimator (Sen 1968), a median-of-pairwise-slopes estimator that is robust to individual outlying years, and expressed as a trend-equivalent change (slope × number of years spanned), where for this version, the numbers of years spanned is seven. Positive values indicate movement towards SJ1-like (more open) structure, and negative values movement towards SJ4-like (more overgrown) structure.
 
@@ -118,11 +122,11 @@ Polygons were excluded from triage where (i) the grazing class was BT5 or BT6 (f
 
 For each polygon that crossed the moderate threshold, the transition matrix was used to describe the spatial character of the change. Change was described as *widespread* where at least 50 % of matched pixels crossed an SJ-like class boundary and at least 75 % of the crossing pixels moved in the same direction as the polygon-level trend, and as *localised* otherwise. Widespread, directionally coherent change is consistent with a polygon-wide driver (for example, a change in grazing regime), whereas change confined to part of a polygon is consistent with a localised intervention or disturbance. These descriptors are reported as spatial evidence and are not by themselves taken as proof of cause. Polygon-level trajectory results are cross-tabulated against the field condition assessment (*tilstand*).
 
-# 6. Grazing pressure and rate of succession {#section-6}
+# 6. Grazing pressure and rate of succession {#section-6 .unnumbered}
 
 To assess whether recorded grazing is associated with a reduced rate of succession, the trend-equivalent change was compared between polygons with no recorded sign of grazing (BT1) and polygons with grazing present (BT2-BT3). Because the distribution of change is skewed and heavy-tailed, the comparison used a two-sided Wilcoxon rank-sum test (Wilcoxon 1945; Mann and Whitney 1947), with the Hodges-Lehmann estimator (Hodges and Lehmann 1963) and its 95 % confidence interval as the effect size, expressed in AE-SJ units. Since the BT classes contribute to the official *tilstand* assessment, the comparison was repeated within *tilstand* strata and within the subset of polygons that started the period in SJ1 or SJ2, to examine whether the association persists after accounting for recorded condition and initial successional stage.
 
-# 7. Burn detection {#section-7}
+# 7. Burn detection {#section-7 .unnumbered}
 
 The burn mapping is triggered by FIRMS: a burn can only be mapped where FIRMS has detected a fire, so it is not a complete inventory of burning. In the validation against registered burning ([Section 11.4](#section-11-4)), FIRMS detected a fire at 20 % of the registered burning sites; where it did and Sentinel-2 imagery was usable, the burn scar was found for 77 % of the fires (apparent performance on the fires used to choose the thresholds). Overall, a burn scar was mapped at 19 of the 127 registered burning sites (15 %). Potential burn events at MI-mapped sites were identified and characterised as follows. First, FIRMS data flags whether a fire has been detected within the area of a kystlynghei site, after which Sentinel-2 imagery is used to map the burn scar using the normalised burn ratio (NBR), with the area of the burn scar within each MI mapped site registered along with the change in AE-SJ score within the burnt area relative to the unburnt area. Detection proceeds in five steps; the parameters are listed in [Table 2](#table-2). The dNBR, vegetation and area thresholds were chosen by testing the method against burning registered in naturtiltak ([Section 11.4](#section-11-4), [Table 8](#table-8)).
 
@@ -167,7 +171,7 @@ The separation will be developed further in 2027 with evidence on the cause of e
 
 **Response of the succession score to burning on MI sites.** For each burn on an MI polygon, the AE-SJ score ([Section 3](#section-3)) of the burnt pixels and of the polygon\'s pixels that were never burnt (in any year) was computed for every year from 2018 to 2025. The effect of the burn in year k relative to the burn is the burnt-reference difference in year k minus the difference in the year before the burn, as in the analysis of registered burns ([Section 11.4](#section-11-4)). The burn year itself was excluded, burns with fewer than 20 pixels in either group were left out, each burn was weighted equally, and 95 % confidence intervals were computed across burns (t distribution), separately for probable prescribed burns and probable wildfires. The SJ-class composition of the burnt pixels was summarised for the year before and the year after the burn. Results are reported in the condition report; burns in the final year of the series cannot yet be assessed.
 
-# 8. Scrub and tree clearance, including spruce removal {#section-8}
+# 8. Scrub and tree clearance, including spruce removal {#section-8 .unnumbered}
 
 Potential removal of scrub and trees was inferred from the pixel transition matrix ([Section 4](#section-4)) as pixels that moved from an SJ3-like or SJ4-like class at baseline (2018-2019) to an SJ1-like or SJ2-like class at the final state (2024-2025). Pixels in the national Picea mask were counted as tree removal whatever their SJ-like class, since spruce are trees; the other transitions from SJ4-like were also counted as tree removal, and the remaining transitions from SJ3-like as scrub removal. Scrub pixels within a burn mapped in any year from 2018 to 2025, and tree pixels within the burn of a probable wildfire ([Section 7](#section-7)), were reported as coinciding with a burn. All other transitioning pixels were classified as potential clearance. A single polygon may contain both.
 
@@ -178,21 +182,21 @@ Clearance is reported for two populations that answer different questions. The f
 - the subset of polygons whose overall trajectory was classified as moderate or strong restoration ([Section 5](#section-5)) and that contain at least one SJ3/SJ4 → SJ1/SJ2 pixel transition. In these polygons, the pixel-level evidence and the independent polygon-level trend agree, which makes this the conservative estimate of restoration through clearance. Both populations are limited to the polygons that entered the triage (13,981; [Section 5](#section-5)), so polygons in BT5 or BT6, with development or failing the quality checks are not included. Of the 1,737 restoring polygons, 1,730 had valid transition data and 999 at least one such transition, covering 707 ha. A single transitioning pixel (0.01 ha) is within the noise of the method: 66 of the 999 polygons have only one, and 603 have at least 0.1 ha; and
 - all polygons with valid transition data and at least one such transition, regardless of the polygon-level trend. In the present assessment, 4,525 polygons have at least one transition (2,019 ha), of which 3,006 (1,252 ha) have no strong signal and 520 (61 ha) are classed as succeeding. This population captures clearance confined to part of a polygon that is not large enough to shift the polygon median, and is used for the site-level inventory ([Section 13](#section-13)).
 
-# 9. Loss of habitat to development {#section-9}
+# 9. Loss of habitat to development {#section-9 .unnumbered}
 
 Conversion of heathland to built surfaces was identified from Dynamic World (Brown et al. 2022) as pixels within MI polygons that transitioned persistently from a natural land-cover class to the built-area class, so that single-year misclassifications were not counted. Lost area was summarised per polygon for 2016-2020 and 2021-2025, and aggregated nationally and by county (*fylke*). Polygons with any detected persistent development were excluded from the trajectory analysis, so that the conversion of heath to built land is not misinterpreted as a change in successional stage.
 
-# 10. Agreement with field assessment {#section-10}
+# 10. Agreement with field assessment {#section-10 .unnumbered}
 
 As an operational agreement assessment of the per-pixel classification, in addition to the cross-validation of the model, the field-assessed 7RA-SJ class of each polygon was compared with the modal SJ-like class of that polygon's pixels in the year of field assessment. This comparison was made for every polygon with a valid field assessment in the period 2018-2025 and a valid satellite score for the same year. Agreement was summarised as a confusion matrix, overall exact agreement, Cohen's κ (Cohen 1960) and class-specific recall. The comparison is not independent of the calibration: the calibration samples were drawn from the same polygons and carry the same field labels. It therefore describes how well the operational product reproduces the field record, not its performance at sites not used in calibration; the latter is estimated by the cross-validation ([Section 11.1](#section-11-1)).
 
 In addition, the burn and clearance signals were evaluated against management actions independently reported in the Norwegian Environment Agency's register of nature management measures (*naturtiltak*). For registered prescribed burns, AE-SJ trajectories were compared before and after the treatment year, relative to untreated reference areas, and the detection of registered burns by the burn method was assessed ([Section 11.4](#section-11-4)). For registered scrub and tree clearance, the proportion of registered actions accompanied by a detectable AE-SJ clearance response was calculated, stratified by the type of action.
 
-# 11. Validation results {#section-11}
+# 11. Validation results {#section-11 .unnumbered}
 
 The model and its operational outputs were validated at three levels: (i) cross-validation of the model on the 0.25 ha calibration samples; (ii) agreement between the operational per-pixel classification and the field assessment of each polygon in the year of survey; and (iii) detection of independently registered management actions. All sample-level metrics are reported for samples outside grazing classes BT5 and BT6, which form the population for which the score is intended.
 
-## 11.1 Cross-validation {#section-11-1}
+## 11.1 Cross-validation {#section-11-1 .unnumbered}
 
 Four metrics were computed on held-out data. Spearman's rank correlation ($\rho$) between the score and the ordinal field class measures how well the score reproduces the full SJ1-SJ4 ordering. The area under the receiver operating characteristic curve (AUC) (Hanley and McNeil 1982) for SJ1 against SJ4 samples measures discrimination between the two endpoints. Endpoint separation is the difference between the held-out median scores of SJ1 and SJ4 samples; on the calibrated scale a value of 1 indicates that the training anchors were reproduced exactly. The fourth metric records whether the four class medians were strictly ordered (SJ1 \> SJ2 \> SJ3 \> SJ4). Grouped cross-validation used five folds defined by parent polygon, repeated twice (10 folds); leave-one-year-out cross-validation withheld each survey year from 2018 to 2025 in turn (8 folds); and spatial-block cross-validation withheld five geographically contiguous blocks of parent polygons (5 folds).
 
@@ -230,7 +234,7 @@ The model reproduced the ordering of the four field classes in every fold of eve
 
 When individual survey years were withheld ([Table 4](#table-4)), rank correlation ranged from 0.519 (2019) to 0.803 (2022), and the AUC was at least 0.970 in every year. Class medians were strictly ordered in every withheld year. Endpoint separation varied between 0.70 and 1.13, indicating that the spacing of the field classes on the AE-SJ scale differs to some degree between embedding years. Inter-annual variation of this kind is one reason why trends are estimated with a robust estimator over eight years, and why single-year changes are not interpreted in isolation ([Section 5](#section-5)).
 
-## 11.2 Agreement with field assessment {#section-11-2}
+## 11.2 Agreement with field assessment {#section-11-2 .unnumbered}
 
 The field-assessed 7RA-SJ class was compared with the modal SJ-like pixel class in the year of survey for 13,846 polygons (96.6 % of all mapped polygons), each assessed once between 2018 and 2025 ([Table 5](#table-5)). Overall exact agreement was 50.8 %, with Cohen's $\kappa$ = 0.333. Because the classes are ordinal, a linearly weighted $\kappa$, which gives partial credit to near misses, was also computed; it was 0.508. Agreement to within one class was 94.2 %, and the rank correlation between field and modal class was 0.674. Gross misclassification was rare: 30 polygon-years (0.2 %) were assigned to the opposite endpoint class (SJ1 as SJ4, or vice versa).
 
@@ -259,7 +263,7 @@ All 30 polygons with gross disagreement were inspected on aerial photographs fro
 
 :::
 
-## 11.3 Detection of registered management actions {#section-11-3}
+## 11.3 Detection of registered management actions {#section-11-3 .unnumbered}
 
 Of the 229 registered scrub and tree clearance actions examined, 160 (69.9 %) were followed by a detectable AE-SJ clearance response within the reported intervention window ([Table 6](#table-6)). Detection was highest for tree clearance (86 %), consistent with the larger structural contrast between SJ4-like woodland and open heath, and lower for scrub clearance (70 %), combined scrub and tree clearance (65 %) and actions of unspecified type (64 %).
 
@@ -277,7 +281,7 @@ Of the 229 registered scrub and tree clearance actions examined, 160 (69.9 %) we
 
 :::
 
-## 11.4 Validation of burn detection against registered burning {#section-11-4}
+## 11.4 Validation of burn detection against registered burning {#section-11-4 .unnumbered}
 
 The burn methods were tested against burning registered in naturtiltak, the grant scheme for measures in threatened nature types, which holds 223 polygons with burning registered in 2021--2025. The registered year is usually the year the measure was reported, at the end of a grant period, so the burning may have been done in that year or in any year before it. The final reports show that not every registered burn was carried out: 32 registrations report only clearing, grazing, burning of brush or cut material, or burning postponed by the weather. These were removed, except two whose reports state that the heath had been burnt in earlier years, confirmed by FIRMS. Of the remaining 193 registrations, 71 have a final report (68 confirming burning at the site, two reporting burning in earlier years, confirmed by FIRMS, and one unclear) and 122 have no final report in the register. Registrations overlapping by more than 90 % (of the smaller polygon) are the same site registered again and were merged, giving 127 features.
 
@@ -321,7 +325,7 @@ The burn methods were tested against burning registered in naturtiltak, the gran
 
 **Implications.** Where FIRMS detects a fire and Sentinel-2 has usable imagery, the dNBR mapping finds the burn scar in about 77 % of cases. The limit is the fire detection: FIRMS detected only 20 % of the registered burning sites, more often the large ones. The burns reported for MI sites are therefore a minimum for prescribed burning, also for large sites, where FIRMS detected 8 of the 18 registered areas over 100 ha (44 %), and small burns that FIRMS misses are counted as clearance where they open SJ3-like heath ([Section 8](#section-8)). FIRMS remains suited to near-real-time warning of wildfires, which are usually larger and more intense. Lyngbrenning registered by Landbruksdirektoratet and a FIRMS-independent screening with Sentinel-2 will be tested in 2027 to cover the small prescribed burns.
 
-# 12. Uncertainty {#section-12}
+# 12. Uncertainty {#section-12 .unnumbered}
 
 Two sources of variation are distinguished. Within-polygon variation in AE-SJ reflects real ecological heterogeneity and is reported descriptively as the standard deviation of pixel scores. A dispersion-based indication of model uncertainty is propagated separately. Each pixel is assigned the standard deviation $s_{k}$ of AE-SJ observed among calibration samples of its SJ-like class $k$ ([Table 1](#table-1)), and the standard error of a polygon's mean score in a given year is computed under an assumption of independent, heteroscedastic pixel errors as
 
@@ -333,15 +337,15 @@ This calibration uncertainty describes where a polygon lies on the successional 
 
 Further known limitations are as follows. FIRMS records a fire at the centre of a 375 m or 1 km pixel, so burns are accepted only where a mapped burn scar lies within reach of the detection; a fire beside a polygon is not attributed to it unless the scar extends into it. Burn detection depends on a FIRMS detection and therefore misses most small and low-intensity prescribed burns ([Section 11.4](#section-11-4)). The mapped burnt area depends on clear Sentinel-2 observations before and after the fire, and lightly burnt margins below the dNBR threshold are not included. Felling produces the same NBR drop as fire and cannot be separated from it within a burn. The clearance analysis and the response of the succession score to burning depend on embedding years before and after an event, so events in the final year of the series cannot yet be fully characterised.
 
-# 13. Outputs {#section-13}
+# 13. Outputs {#section-13 .unnumbered}
 
 The module results are combined into a unified site summary containing one record per MI polygon. Each record contains the baseline, final and trend-equivalent AE-SJ values and the triage class; the scrub, tree and spruce transition areas, with the area coinciding with a mapped burn shown separately; the burn years, burnt area and provisional fire type; and the spruce cover. The summary is distributed as a table and as polygon and point vector layers, for detailed inspection and for national-scale mapping, respectively. Annual per-pixel AE-SJ scores, polygon statistics, the FIRMS fire events, per-event dNBR rasters and per-polygon burn masks are retained, so the assessment can be updated each year as a new AlphaEarth embedding year and new fire detections become available, using the fixed model parameters without recalibration.
 
-# 14. Software {#section-14}
+# 14. Software {#section-14 .unnumbered}
 
 Model calibration and all statistical analyses were carried out in R. Annual national scoring, Sentinel-2 burn mapping, fire-type classification and the validation against registered burning were implemented in Python, using aef-loader for the AlphaEarth embeddings, rasterio, GeoPandas, NumPy and SciPy for raster, vector and image processing, and pystac-client with planetary-computer for Sentinel-2 retrieval. The model parameters used in the Python implementation are generated programmatically from the fitted R model, so that the two implementations apply the same model.
 
-# References {#references}
+# References {#references .unnumbered}
 
 Benjamini, Y., and Y. Hochberg. 1995. Controlling the false discovery rate: A practical and powerful approach to multiple testing. Journal of the Royal Statistical Society: Series B (Methodological) 57: 289-300. doi:10.1111/j.2517-6161.1995.tb02031.x.
 
