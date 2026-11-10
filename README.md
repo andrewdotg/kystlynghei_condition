@@ -15,7 +15,7 @@ with GitHub Pages; its source is
 `report/kystlynghei_condition_report.qmd`. After re-rendering, copy
 `report/kystlynghei_condition_report.html` to `docs/index.html`.
 
-The methodology is a living HTML document linked from the report's appendix:
+The methodology is the report's methods appendix, a separate HTML page:
 [methodology](https://andrewdotg.github.io/kystlynghei_condition/kystlynghei_methods.html).
 Its source is `report/kystlynghei_methods.qmd` (figures in `report/img/methods_fig*.png`).
 After editing, render it with `quarto render report/kystlynghei_methods.qmd` and copy
@@ -37,8 +37,10 @@ example in another Quarto site), copy these from `report/` and render the qmd:
 - `references.bib`
 - `ambio.csl`
 
-Links to the methodology and the repository are absolute; their base URLs are
-the `methods-url` and `repo-url` fields in the qmd's YAML header. Only a render
+Links to the methods appendix are relative (`kystlynghei_methods.html#...`), so
+keep `kystlynghei_methods.qmd` in the same folder as the report; links to the
+repository are absolute. Both are set by the `methods-url` and `repo-url` fields
+in the qmd's YAML header. Only a render
 inside the repo writes the site table to `report/data/`.
 
 ## Pipeline
