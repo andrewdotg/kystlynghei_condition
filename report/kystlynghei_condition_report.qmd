@@ -1765,7 +1765,7 @@ if (IN_REPO) {
 
 ## Methodology {#sec-appendix-methods .unnumbered}
 
-The full methodology, including the equations, parameters, validation results and known limitations, is given in the methods appendix, which is updated together with the analysis: **[Coastal heathland succession: methodology]({{< meta methods-url >}})**. Its section, table and figure numbers are kept stable, so the references in this report ("Methods appendix, Section *n*") link directly to the relevant part.
+The full methodology, including the equations, parameters, validation results and known limitations, is given in the methods appendix, which is updated together with the analysis: **[Coastal heathland succession: methodology]({{< meta methods-url >}})**. 
 
 ## Author contributions {.unnumbered}
 

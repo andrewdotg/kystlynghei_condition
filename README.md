@@ -9,39 +9,13 @@ to assess trajectories, grazing, burning, scrub and tree clearance, and loss
 to development.
 
 **Report:** [Coastal heathland
-succession](https://andrewdotg.github.io/kystlynghei_condition/) (version 0.1.0,
-draft for internal review). The rendered report is `docs/index.html`, published
+succession](https://andrewdotg.github.io/kystlynghei_condition/) (version 0.1.0). The rendered report is `docs/index.html`, published
 with GitHub Pages; its source is
-`report/kystlynghei_condition_report.qmd`. After re-rendering, copy
-`report/kystlynghei_condition_report.html` to `docs/index.html`.
+`report/kystlynghei_condition_report.qmd`. 
 
-The methodology is the report's methods appendix, a separate HTML page:
+The full methodology is included as an appendix in the reporte:
 [methodology](https://andrewdotg.github.io/kystlynghei_condition/kystlynghei_methods.html).
-Its source is `report/kystlynghei_methods.qmd` (figures in `report/img/methods_fig*.png`).
-After editing, render it with `quarto render report/kystlynghei_methods.qmd` and copy
-`report/kystlynghei_methods.html` to `docs/kystlynghei_methods.html`. The report links to
-its sections by anchor (`kystlynghei_methods.html#section-11-4`, `#table-1`, `#figure-2`),
-so keep the `{#section-n}` ids on the headings when editing.
 
-**Report data.** The report reads only from `report/render_data/` (about 27 MB:
-gzip-compressed tables trimmed to the columns used, the MI outlines and site
-points, and a copy of `R/theme.R`; see `report/render_data/README.md`), not from
-the pipeline outputs. Refresh it after each pipeline run, from the repo root:
-`Rscript R/export_render_data.R`. To render the report outside the repo (for
-example in another Quarto site), copy these from `report/` and render the qmd:
-
-- `kystlynghei_condition_report.qmd`
-- `render_data/`
-- `img/`
-- `fig_burn_example_2679_2019_recovery.png`
-- `references.bib`
-- `ambio.csl`
-
-Links to the methods appendix are relative (`kystlynghei_methods.html#...`), so
-keep `kystlynghei_methods.qmd` in the same folder as the report; links to the
-repository are absolute. Both are set by the `methods-url` and `repo-url` fields
-in the qmd's YAML header. Only a render
-inside the repo writes the site table to `report/data/`.
 
 ## Pipeline
 
