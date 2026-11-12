@@ -40,6 +40,8 @@ report/data/
 report/kystlynghei_condition_report.html
 report/kystlynghei_condition_report_files/
 report/kystlynghei_condition_report_cache/
+# Lazy-loaded map page, regenerated with the report
+report/kystlynghei-map.html
 # Rendered methodology (the published copy is docs/kystlynghei_methods.html)
 report/kystlynghei_methods.html
 report/kystlynghei_methods_files/
