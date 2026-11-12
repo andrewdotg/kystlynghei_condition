@@ -9,12 +9,13 @@ to assess trajectories, grazing, burning, scrub and tree clearance, and loss
 to development.
 
 **Report:** [Coastal heathland
-succession](https://andrewdotg.github.io/kystlynghei_condition/) (version 0.1.0). The rendered report is `docs/index.html`, published
-with GitHub Pages; its source is
-`report/kystlynghei_condition_report.qmd`. 
+succession](https://ninanor.github.io/effektovervaaking-2026-2030/Kystlynghei/report/kystlynghei_condition_report.html)
+(version 0.1.0), published on NINA's Effektovervåking 2026–2030 site. Its source is
+`report/kystlynghei_condition_report.qmd`.
 
-The full methodology is included as an appendix in the reporte:
-[methodology](https://andrewdotg.github.io/kystlynghei_condition/kystlynghei_methods.html).
+The full methodology is included as an appendix to the report:
+[methodology](https://ninanor.github.io/effektovervaaking-2026-2030/Kystlynghei/report/kystlynghei_methods.html).
+Its source is `report/kystlynghei_methods.qmd`.
 
 
 ## Pipeline

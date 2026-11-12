@@ -1734,10 +1734,11 @@ The following steps are proposed for 2027:
 1. **Target manual verification** using the site results. Priorities: sites with strong *succession*, sites in good condition with a *succession* trajectory, the largest clearance and burn events, and a sample of the *opening* sites in Nordland.
 2. **Refine the year-effect correction.** The county-level correction could be made finer, for example with regions defined by climate or growing-season timing, or by calibrating each year against stable reference sites. Then re-examine the national drift towards overgrowth.
 3. **Use lyngbrenning registered by Landbruksdirektoratet as a further screen for fire effects.** Lyngbrenning supported through the agricultural schemes is recorded by Landbruksdirektoratet. Like the *naturtiltak* register, these records give the site and year of burns that are mostly too small for FIRMS. Matched to the MI sites, they would add the small prescribed burns to the burn layer, so that their effect on succession can be measured and they are no longer counted as clearance.
-4. **Quantify management effects against reference areas.** Compare treated *naturtiltak* polygons with reference heath in good condition to estimate effect sizes for burning, clearance and grazing.
-5. **Adopt a minimum reporting area** of 0.1 ha for clearance and spruce removal.
-6. **Separate heather from grass dominance** with Sentinel-2 red-edge and moisture indices, and add grazing data that are independent of the condition assessment.
-7. **Update annually.** The model is fixed, so each new year of AlphaEarth data can be scored without recalibration. It also allows the effect of the most recent burns on succession to be measured.
+4. **Cross-check the burn layer against global burned-area products.** MODIS MCD64A1 (500 m) and FireCCI (250 m) are too coarse to map most heath burns, but they record larger fires independently of FIRMS. Comparing them with the dNBR burns would show whether large fires are missed or their extent underestimated, and would check the burn layer without relying on the FIRMS trigger.
+5. **Quantify management effects against reference areas.** Compare treated *naturtiltak* polygons with reference heath in good condition to estimate effect sizes for burning, clearance and grazing.
+6. **Adopt a minimum reporting area** of 0.1 ha for clearance and spruce removal.
+7. **Separate heather from grass dominance** with Sentinel-2 red-edge and moisture indices, and add grazing data that are independent of the condition assessment.
+8. **Update annually.** The model is fixed, so each new year of AlphaEarth data can be scored without recalibration. It also allows the effect of the most recent burns on succession to be measured.
 
 # Data and code availability
 
