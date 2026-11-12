@@ -1362,8 +1362,6 @@ The map shows every mapped kystlynghei site as a point on aerial imagery. Use th
 
 In the trajectory and priority layers, the transparency of a site shows the confidence in its trend (@sec-uncertainty): solid sites have high confidence, half-transparent sites medium and nearly transparent sites low confidence. The site details give the 90 % interval of the trend.
 
-The interactive map loads when you scroll to it.
-
 
 ```{r webmap}
 
