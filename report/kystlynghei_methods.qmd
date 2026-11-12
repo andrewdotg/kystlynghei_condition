@@ -14,7 +14,7 @@ code-links:
 lang: en-GB
 format:
   html:
-    embed-resources: true
+    # embed-resources: true
     toc: true
     toc-title: Contents
     toc-depth: 2

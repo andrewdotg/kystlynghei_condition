@@ -23,7 +23,7 @@ code-links:
 lang: en-GB
 format:
   html:
-    embed-resources: true
+    # embed-resources: true
     toc: true
     toc-title: Contents
     toc-depth: 3
@@ -1362,6 +1362,8 @@ The map shows every mapped kystlynghei site as a point on aerial imagery. Use th
 
 In the trajectory and priority layers, the transparency of a site shows the confidence in its trend (@sec-uncertainty): solid sites have high confidence, half-transparent sites medium and nearly transparent sites low confidence. The site details give the 90 % interval of the trend.
 
+The interactive map loads when you scroll to it.
+
 
 ```{r webmap}
 
@@ -1665,7 +1667,10 @@ m <- htmlwidgets::onRender(m, map_js, data = list(
 m$width  <- "100%"
 m$height <- 720
 
-htmltools::tagList(
+map_file <- "kystlynghei-map.html"
+
+map_widget <- htmlwidgets::prependContent(
+  m,
   htmltools::tags$style(htmltools::HTML("
     .site-pop { font-size: 12.5px; min-width: 250px; }
     .site-pop h4 { margin: 0 0 2px; font-size: 14px; }
@@ -1679,8 +1684,21 @@ htmltools::tagList(
     .lg-conf i:nth-of-type(1) { opacity: 0.95 !important; }
     .lg-conf i:nth-of-type(2) { opacity: 0.5 !important; }
     .lg-conf i:nth-of-type(3) { opacity: 0.15 !important; }
-  ")),
-  m
+  "))
+)
+
+htmlwidgets::saveWidget(
+  map_widget,
+  file = map_file,
+  selfcontained = TRUE,
+  title = "Interactive map of all sites"
+)
+
+htmltools::tags$iframe(
+  src = map_file,
+  title = "Interactive map of all kystlynghei sites",
+  loading = "lazy",
+  style = "width: 100%; height: 720px; border: 0;"
 )
 ```
 
