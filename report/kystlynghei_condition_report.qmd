@@ -28,7 +28,7 @@ format:
     toc-title: Contents
     toc-depth: 3
     smooth-scroll: true
-    number-sections: true
+    number-sections: false # manual numbering in the headings
     fig-cap-location: bottom
     tbl-cap-location: top
     lightbox: false
@@ -592,7 +592,7 @@ Coastal heathland (*kystlynghei*) is a semi-natural habitat maintained by grazin
 
 
 
-# Introduction
+# 1. Introduction
 
 Coastal heathland is one of Norway's most threatened nature types. It depends on continued grazing and periodic burning; when these stop, the heath passes through a predictable succession from open heather to scrub and then to woodland [@velle2014]. Miljødirektoratet's nature-type mapping [@mi_instruks] (hereafter MI) records the successional stage of each mapped site on the four-step *7RA-SJ* scale (SJ1 intact, SJ2 fallow phase, SJ3 early regrowth, SJ4 late regrowth), but each site is typically visited only once and repeat field assessment is rare.
 
@@ -608,9 +608,9 @@ Here, we present the results of a satellite-based assessment that extends the SJ
 
 This report presents an annually resolved, satellite-based assessment of succession and management-related change in mapped coastal heathland. It supports the action plan for coastal heathland 2023-2037 [@kystlynghei_handlingsplan], which names burning, grazing and clearance as the main management measures. Results are reported at site level and nationally.
 
-Every site can be explored in the interactive web map (@sec-webmap).
+Every site can be explored in the interactive web map ([Section 3.8](#sec-webmap)).
 
-# Data and methods
+# 2. Data and methods
 
 This section describes the satellite-derived indicators used to assess successional change; management activities are inferred or cross-referenced where possible. Full descriptions, equations and validation are given in the [methods appendix]({{< meta methods-url >}}), cited below as "Methods appendix, Section *n*"; each such reference links to the section concerned.
 
@@ -618,23 +618,23 @@ This section describes the satellite-derived indicators used to assess successio
 
 **Succession score (AE-SJ).** Each 10 × 10 m pixel's annual AlphaEarth embedding [@alphaearth2025] is converted into a continuous score calibrated so that a typical SJ4 (overgrown) pixel scores 0 and a typical SJ1 (open) pixel scores 1. Pixels are assigned to an SJ-like class using boundaries midway between the class medians ([Methods appendix, Sections 3-4]({{< meta methods-url >}}#section-3)).
 
-**Trajectories.** For each site, a (Theil-Sen) trend [@sen1968] is fitted to its annual median score for 2018-2025. Sites are classed as *moderate* or *strong* *opening* or *succession* when the change over the period exceeds half the distance between the median scores of SJ1 and SJ2 (moderate) or half the distance between the median scores of SJ3 and SJ4 (strong). The SJ1-SJ2 distance is the smallest step between neighbouring classes, and is hereafter referred to as the *SJ1-SJ2 step*; the SJ3-SJ4 distance is `r fmt(key$gap34 / key$gap12, 1)` times as large. In terms of AE-SJ units, sites with a trend-equivalent change ≥ +`r fmt(key$thr_mod, 3)` were labelled moderate *opening* and those ≤ −`r fmt(key$thr_mod, 3)` moderate *succession*; absolute changes ≥ `r fmt(key$thr_strong, 3)` were labelled strong. Smaller changes were designated ‘no strong signal’. Sites with heavy grazing (BT5-BT6), built development, fewer than six years of data or implausible jumps are excluded ([Methods appendix, Section 5]({{< meta methods-url >}}#section-5)). Before the trend is fitted, the annual scores are corrected for regional year effects: in each county and year, the typical deviation of all sites from their own trend lines, which reflects weather, snow and the timing of the growing season shared across the region. Each trend is given a confidence level from its 90 % confidence interval (@sec-uncertainty). 
+**Trajectories.** For each site, a (Theil-Sen) trend [@sen1968] is fitted to its annual median score for 2018-2025. Sites are classed as *moderate* or *strong* *opening* or *succession* when the change over the period exceeds half the distance between the median scores of SJ1 and SJ2 (moderate) or half the distance between the median scores of SJ3 and SJ4 (strong). The SJ1-SJ2 distance is the smallest step between neighbouring classes, and is hereafter referred to as the *SJ1-SJ2 step*; the SJ3-SJ4 distance is `r fmt(key$gap34 / key$gap12, 1)` times as large. In terms of AE-SJ units, sites with a trend-equivalent change ≥ +`r fmt(key$thr_mod, 3)` were labelled moderate *opening* and those ≤ −`r fmt(key$thr_mod, 3)` moderate *succession*; absolute changes ≥ `r fmt(key$thr_strong, 3)` were labelled strong. Smaller changes were designated ‘no strong signal’. Sites with heavy grazing (BT5-BT6), built development, fewer than six years of data or implausible jumps are excluded ([Methods appendix, Section 5]({{< meta methods-url >}}#section-5)). Before the trend is fitted, the annual scores are corrected for regional year effects: in each county and year, the typical deviation of all sites from their own trend lines, which reflects weather, snow and the timing of the growing season shared across the region. Each trend is given a confidence level from its 90 % confidence interval ([Section 3.2.1](#sec-uncertainty)). 
 
 **Burns.** Burns are found in two steps ([Methods appendix, Section 7]({{< meta methods-url >}}#section-7)). NASA FIRMS active-fire detections [@firms_nasa] from four satellite products (VIIRS on NOAA-20, Suomi NPP and NOAA-21 [@schroeder2014], and MODIS [@giglio2016]) are first used to screen the MI sites for burn events, including the timing of the burn. Sentinel-2 imagery [@sentinel2_esa], accessed through Microsoft Planetary Computer [@planetary_computer], is then used to identify the burn scar. For each fire detected, the normalised burn ratio (NBR) [@key2006] in the weeks after the detection is compared, pixel by pixel, with the same season of the previous year, a burn scar being defined as a patch of pixels of at least 0.25 ha whose NBR dropped clearly (dNBR) between the detection and the previous year. Burns are provisionally separated by the date of the FIRMS detection: a burn with any detection in June, July or August is treated as a probable wildfire, and all other burns, which fall in the lyngbrenning season in late winter and spring, as probable prescribed burns.
 
-**Scrub and tree clearance.** Transitions from SJ3/SJ4-like conditions in the 2018–2019 baseline to SJ1/SJ2-like conditions in the 2024–2025 endpoint were treated as indicators of woody-vegetation reduction, potentially associated with clearance or burning. Tree removal is the SJ4-like pixels together with all pixels classified as *Picea* on the Forest Paths tree genus map [@forestpaths], scrub removal is the remaining SJ3-like pixels. Scrub pixels inside a mapped burn are reported as *coinciding with a burn* as the method cannot distinguish between burning and mechanical clearance (see @sec-disc-burns).
+**Scrub and tree clearance.** Transitions from SJ3/SJ4-like conditions in the 2018–2019 baseline to SJ1/SJ2-like conditions in the 2024–2025 endpoint were treated as indicators of woody-vegetation reduction, potentially associated with clearance or burning. Tree removal is the SJ4-like pixels together with all pixels classified as *Picea* on the Forest Paths tree genus map [@forestpaths], scrub removal is the remaining SJ3-like pixels. Scrub pixels inside a mapped burn are reported as *coinciding with a burn* as the method cannot distinguish between burning and mechanical clearance (see [Section 4.3](#sec-disc-burns)).
 
 **Registered management actions (*naturtiltak*).** Miljødirektoratet's register of nature management measures (*naturtiltak*) records burning and scrub and tree clearance funded through the grant scheme for threatened nature types, with the polygon and year of each measure. It was used to develop and validate the burn and clearance methods: the burn-mapping thresholds were chosen against 193 registered burns, and the AE-SJ clearance response was tested against 229 registered clearance actions ([Methods appendix, Sections 11.3-11.4]({{< meta methods-url >}}#section-11-3)). The register was not used to calibrate the succession score.
 
 **Grazing and development.** Among eligible sites with field SJ1–SJ3 and good or moderate field condition, we compared trend-equivalent change between BT1 (no grazing) and BT2–BT3 (moderate grazing) using a two-sided Wilcoxon test and Hodges–Lehmann estimate ([Methods appendix, Section 6]({{< meta methods-url >}}#section-6)). Loss to development is taken from persistent transitions from natural land cover to built land cover in Dynamic World land cover classifications [@brown2022] ([Methods appendix, Section 9]({{< meta methods-url >}}#section-9)).
 
-# Results
+# 3. Results
 
-## Overview
+## 3.1 Overview
 
 ```{r tbl-headline}
 #| label: tbl-headline
-#| tbl-cap: "Headline results, all mapped kystlynghei sites, 2018-2025. Indented rows are subsets of the row above. Trajectory confidence is from the 90 % interval on each site's trend (@sec-uncertainty): high = the interval lies wholly beyond the moderate threshold (at least a moderate trend in the direction of the class); medium = the interval excludes zero (the direction is clear, but not the size); low = the interval includes zero (the change cannot be separated from year-to-year variation). A site burnt in both seasons is counted in both burn rows. Clearance is the area of pixels that changed from SJ3/SJ4 to SJ1/SJ2 in sites with an *opening* trajectory."
+#| tbl-cap: "Headline results, all mapped kystlynghei sites, 2018-2025. Indented rows are subsets of the row above. Trajectory confidence is from the 90 % interval on each site's trend ([Section 3.2.1](#sec-uncertainty)): high = the interval lies wholly beyond the moderate threshold (at least a moderate trend in the direction of the class); medium = the interval excludes zero (the direction is clear, but not the size); low = the interval includes zero (the change cannot be separated from year-to-year variation). A site burnt in both seasons is counted in both burn rows. Clearance is the area of pixels that changed from SJ3/SJ4 to SJ1/SJ2 in sites with an *opening* trajectory."
 
 # indent: 0 = main row, 1 = subset of the row above, 2 = subset of a subset
 headline <- tibble::tribble(
@@ -673,7 +673,7 @@ headline |>
   })
 ```
 
-## Model performance
+## 3.2 Model performance
 
 The model was validated by cross-validation on the calibration samples and by comparison with the field assessment of each site in its survey year ([Methods appendix, Section 11]({{< meta methods-url >}}#section-11)). The main figures are summarised here. @fig-model-sj shows how the calibration samples of each field class are spread along the AE-SJ score. The class medians are in the correct order and the middle halves of the endpoint classes, SJ1 and SJ4, are far apart. Neighbouring classes overlap, however: the middle halves of SJ1 and SJ2 overlap, and the ranges of all neighbouring classes overlap widely, so a single pixel's score does not determine its class.
 
@@ -727,9 +727,9 @@ confusion |>
   })
 ```
 
-The validation results thus suggest that the model is well suited as an indicator of movement along the successional gradient. The validation above compares sites with their field class at one point in time, however, and does not test change directly: individual trajectories also depend on how stable the embeddings are from year to year, and should be read together with their trend uncertainty (@sec-uncertainty). It is less suited to deciding the exact class of a single site, particularly between SJ2 and SJ3. This matters most for the clearance results (@sec-clearance): most of the cleared area moved from SJ3-like to SJ2-like condition, across the boundary the model resolves least well. Clearance areas should therefore be read as where heath has opened up, rather than as exact areas changing class.
+The validation results thus suggest that the model is well suited as an indicator of movement along the successional gradient. The validation above compares sites with their field class at one point in time, however, and does not test change directly: individual trajectories also depend on how stable the embeddings are from year to year, and should be read together with their trend uncertainty ([Section 3.2.1](#sec-uncertainty)). It is less suited to deciding the exact class of a single site, particularly between SJ2 and SJ3. This matters most for the clearance results ([Section 3.6](#sec-clearance)): most of the cleared area moved from SJ3-like to SJ2-like condition, across the boundary the model resolves least well. Clearance areas should therefore be read as where heath has opened up, rather than as exact areas changing class.
 
-### Model uncertainty {#sec-uncertainty}
+### 3.2.1 Model uncertainty {#sec-uncertainty}
 
 Several sources of uncertainty affect the results. Two can be quantified for every site and are reported below: uncertainty in where a site lies on the gradient in a given year, and uncertainty in its trend over the period.
 
@@ -745,15 +745,15 @@ This uncertainty affects where a site is placed on the gradient, and therefore i
 
 Sites with no trend (i.e. they are stable or fluctuating) have no confidence level: with eight annual values, the interval is too wide to show that a site has changed by less than the moderate threshold, so these sites have no detectable trend rather than a confirmed stable state.
 
-A low confidence does not mean that a site is unchanged, only that its change over the period cannot be separated from the year-to-year variation. Management changes a site in a step rather than gradually, but this widens the intervals little: sites where more than a fifth of the area was cleared (`r fmt(key$cleared20_n)` sites) have a median standard error of `r step12(key$change_se_cleared20)` of the SJ1-SJ2 step, against `r step12(key$change_se_other)` for sites without detected clearance or burning. For managed sites, the clearance and burn results (@sec-clearance, @sec-fire) remain the more direct evidence of change. The confidence level, the interval and both standard errors are included in the site shapefiles, and the confidence is shown in the web map (@sec-webmap).
+A low confidence does not mean that a site is unchanged, only that its change over the period cannot be separated from the year-to-year variation. Management changes a site in a step rather than gradually, but this widens the intervals little: sites where more than a fifth of the area was cleared (`r fmt(key$cleared20_n)` sites) have a median standard error of `r step12(key$change_se_cleared20)` of the SJ1-SJ2 step, against `r step12(key$change_se_other)` for sites without detected clearance or burning. For managed sites, the clearance and burn results (Sections [3.6](#sec-clearance) and [3.5](#sec-fire)) remain the more direct evidence of change. The confidence level, the interval and both standard errors are included in the site shapefiles, and the confidence is shown in the web map ([Section 3.8](#sec-webmap)).
 
-## Successional trajectories 2018-2025 {#sec-trajectories}
+## 3.3 Successional trajectories 2018-2025 {#sec-trajectories}
 
 Of the `r fmt(key$n_classified)` sites with a trajectory classification, `r fmt(key$n_succ)` (`r pct(key$n_succ / key$n_classified)`) moved towards overgrowth and `r fmt(key$n_restor)` (`r pct(key$n_restor / key$n_classified)`) towards more open heath (@fig-triage). Strong changes were rare in both directions: `r fmt(key$tri[["Strong succession"]])` strong *succession* and `r fmt(key$tri[["Strong opening"]])` strong *opening* sites. The median site moved `r step12(abs(key$median_change))` of the SJ1-SJ2 step towards overgrowth over the period, so the typical site is drifting slightly towards *succession*.
 
 ```{r fig-triage}
 #| label: fig-triage
-#| fig-cap: "Number of sites in each trajectory class, 2018-2025. Excluded sites (heavy grazing, development, insufficient data) are not shown. Transparency shows the confidence in each site's trend (@sec-uncertainty): solid = high, mid-tone = medium, pale = low. *No strong signal* sites have no confidence level."
+#| fig-cap: "Number of sites in each trajectory class, 2018-2025. Excluded sites (heavy grazing, development, insufficient data) are not shown. Transparency shows the confidence in each site's trend ([Section 3.2.1](#sec-uncertainty)): solid = high, mid-tone = medium, pale = low. *No strong signal* sites have no confidence level."
 #| fig-height: 3.8
 
 CONF_ALPHA <- c(High = 1, Medium = 0.55, Low = 0.22)
@@ -774,7 +774,7 @@ ggplot(triage_conf, aes(class, n, fill = class, alpha = conf)) +
   theme(legend.position = "top", legend.justification = "left")
 ```
 
-Confidence in the trends varies (@sec-uncertainty). `r fmt(key$succ_high)` *succession* sites and `r fmt(key$restor_high)` *opening* sites have high confidence of at least a moderate trend, and a further `r fmt(key$succ_medium)` and `r fmt(key$restor_medium)` have a clear direction but an uncertain size of change (@tbl-headline). The balance towards *succession* holds among the sites we are most confident about (`r fmt(key$succ_high / key$restor_high, 1)` *succession* sites for every *opening* site, against `r fmt(key$ratio, 1)` for all classified sites).
+Confidence in the trends varies ([Section 3.2.1](#sec-uncertainty)). `r fmt(key$succ_high)` *succession* sites and `r fmt(key$restor_high)` *opening* sites have high confidence of at least a moderate trend, and a further `r fmt(key$succ_medium)` and `r fmt(key$restor_medium)` have a clear direction but an uncertain size of change (@tbl-headline). The balance towards *succession* holds among the sites we are most confident about (`r fmt(key$succ_high / key$restor_high, 1)` *succession* sites for every *opening* site, against `r fmt(key$ratio, 1)` for all classified sites).
 
 **Regional pattern.** The balance between *succession* and *opening* differs strongly between counties (@fig-triage-fylke). *Succession* dominates in western Norway, most of all in Møre og Romsdal, Vestland, Agder and Rogaland. Nordland is the clear exception: `r pct(key$nordland_restor, 0)` of its sites are classed as *opening* and only `r pct(key$nordland_succ, 0)` as *succession*. This contrast is large enough to warrant further verification before it is interpreted as a management success. A regional difference in the satellite data, for example later snow melt or a shorter growing season in the north, could produce a similar pattern. Manual checks of airborne imagery for a sample of the *opening* Nordland sites are planned for 2027.
 
@@ -972,7 +972,7 @@ count(trends, triage_class)
 
 :::
 
-## Grazing
+## 3.4 Grazing
 
 Among sites assessed as SJ1-SJ3 in good or moderate condition, sites without signs of grazing (BT1, `r fmt(grazing_test$n_no_grazing)` sites) drifted towards overgrowth, while sites with grazing (BT2-BT3, `r fmt(grazing_test$n_grazing_present)` sites) were on average stable or slightly *opening* (@fig-grazing). The comparison uses each site's Theil-Sen trend over 2018-2025. The groups differ statistically (Wilcoxon rank-sum test [@wilcoxon1945; @mann1947], p = `r sub("e-0?(\\d+)$", " × 10^−\\1^", formatC(key$graze_p, format = "e", digits = 1))`), but with this many sites even a small difference gives a very small p-value, and the test assumes that sites are independent, which neighbouring sites are not. The estimated difference is small: `r step12(abs(key$graze_shift), 1)` of the SJ1-SJ2 step per year (Hodges-Lehmann estimate [@hodges1963]). That amounts to about `r step12(abs(key$graze_shift) * 7)` over the measurement period, which is below the 50 % threshold for a moderate change.
 
@@ -1048,7 +1048,7 @@ wilcox.test(sj_change ~ grazing, data = moderat, conf.int = TRUE)
 
 :::
 
-## Burns {#sec-fire}
+## 3.5 Burns {#sec-fire}
 
 FIRMS recorded `r fmt(key$firms_events)` fires close to, or within, mapped kystlynghei sites between 2018 and 2025. Mapping burn scars across the fire-affected areas found `r fmt(key$fire_siteyears)` burns on `r fmt(key$fire_sites)` MI sites, with a total burnt area of `r fmt(key$fire_ha)` ha (@fig-fire-year, @tbl-fires-largest). `r fmt(key$fire_multi)` sites burnt more than once. Most burns are small: the median burnt area on a site is `r fmt(key$fire_med_ha, 1)` ha, and `r fmt(key$fire_lt1)` burns are smaller than 1 ha. Burning varies strongly between years; `r key$fire_top_year` has the largest burnt area, with `r pct(key$fire_top_share, 0)` of the total.
 
@@ -1099,9 +1099,9 @@ fires |>
 knitr::include_graphics("fig_burn_example_2679_2019_recovery.png")
 ```
 
-**Prescribed burns and wildfires.** As a provisional separation, burns are classed by the date of their FIRMS detections. `r fmt(key$rx_siteyears)` burns on `r fmt(key$rx_sites)` sites (`r fmt(key$rx_ha)` ha) were detected only outside June-August, in the lyngbrenning season, and are probably prescribed burns. `r fmt(key$wf_siteyears)` burns on `r fmt(key$wf_sites)` sites (`r fmt(key$wf_ha)` ha) had a detection in June-August and are probably wildfires (years: `r key$wf_years`). The 2021 wildfire on Sotra (site 298) alone makes up `r fmt(key$wf_298_ha)` ha. `r fmt(key$fire_both_sites)` sites had both a spring burn and a summer fire in different years. Separating burn type by time of year cannot recognise wildfires in spring, such as fires that escape during a dry April (for example, the fire at Lindesnes, shown in @tbl-fires-largest as a prescribed burn, was in fact a wildfire but is mislabelled ‘probable prescribed’ by this rule), so some burns classed here as prescribed may have been uncontrolled (@sec-disc-burns). We will work to refine this classification in future updates of the report.
+**Prescribed burns and wildfires.** As a provisional separation, burns are classed by the date of their FIRMS detections. `r fmt(key$rx_siteyears)` burns on `r fmt(key$rx_sites)` sites (`r fmt(key$rx_ha)` ha) were detected only outside June-August, in the lyngbrenning season, and are probably prescribed burns. `r fmt(key$wf_siteyears)` burns on `r fmt(key$wf_sites)` sites (`r fmt(key$wf_ha)` ha) had a detection in June-August and are probably wildfires (years: `r key$wf_years`). The 2021 wildfire on Sotra (site 298) alone makes up `r fmt(key$wf_298_ha)` ha. `r fmt(key$fire_both_sites)` sites had both a spring burn and a summer fire in different years. Separating burn type by time of year cannot recognise wildfires in spring, such as fires that escape during a dry April (for example, the fire at Lindesnes, shown in @tbl-fires-largest as a prescribed burn, was in fact a wildfire but is mislabelled ‘probable prescribed’ by this rule), so some burns classed here as prescribed may have been uncontrolled ([Section 4.3](#sec-disc-burns)). We will work to refine this classification in future updates of the report.
 
-### Effect of burning on succession {#sec-fire-effect}
+### 3.5.1 Effect of burning on succession {#sec-fire-effect}
 
 For each burn, the mean score of the burnt pixels was compared with that of the pixels in the same site that never burnt, from three years before to four years after the burn. The difference in the year before the burn was subtracted, so the effect measures the change caused by the burn. 
 
@@ -1136,7 +1136,7 @@ ggplot(eff_plot, aes(years_since_burn, effect, colour = fire_type, fill = fire_t
 
 In the first year after a burn, burnt heath moved towards SJ1 relative to unburnt heath in the same site by `r step12(key$eff_rx1)` of the SJ1-SJ2 step after prescribed burns (`r fmt(key$eff_n_rx)` burns) and by `r step12(key$eff_wf1)` after summer fires (`r fmt(key$eff_n_wf)` burns) (@fig-burn-effect, @tbl-fire-type). The shift was positive for `r pct(key$eff_rx_pos1, 0)` of prescribed burns and `r pct(key$eff_wf_pos1, 0)` of summer fires. It kept growing in the following years, to `r step12(key$eff_rx4)` of the SJ1-SJ2 step four years after prescribed burns, and to about `r step12(key$eff_wf2)` for summer fires. Before burning, the difference between burnt and unburnt pixels was stable, so the shift is not a continuation of an earlier trend.
 
-Both burn types affected mostly open heath. Before the burn, `r pct(key$rx_pre_sj12, 0)` of the area burnt in prescribed burns and `r pct(key$wf_pre_sj12, 0)` of the area burnt in summer fires was SJ1- or SJ2-like, and `r pct(key$rx_pre_sj34, 0)` and `r pct(key$wf_pre_sj34, 0)` was SJ3- or SJ4-like. A year after the burn, `r pct(key$rx_post_sj1, 0)` and `r pct(key$wf_post_sj1, 0)` of the burnt area was SJ1-like, against `r pct(key$rx_pre_sj1, 0)` and `r pct(key$wf_pre_sj1, 0)` before. Burning, therefore, appears to mainly renew heath that is still open, moving it from the fallow stage (SJ2) back to intact heath (SJ1), with our analysis suggesting it rarely reopens overgrown heath. This is consistent with the small area of SJ3-like heath that increased in AE-SJ score within a burn (@sec-clearance). 
+Both burn types affected mostly open heath. Before the burn, `r pct(key$rx_pre_sj12, 0)` of the area burnt in prescribed burns and `r pct(key$wf_pre_sj12, 0)` of the area burnt in summer fires was SJ1- or SJ2-like, and `r pct(key$rx_pre_sj34, 0)` and `r pct(key$wf_pre_sj34, 0)` was SJ3- or SJ4-like. A year after the burn, `r pct(key$rx_post_sj1, 0)` and `r pct(key$wf_post_sj1, 0)` of the burnt area was SJ1-like, against `r pct(key$rx_pre_sj1, 0)` and `r pct(key$wf_pre_sj1, 0)` before. Burning, therefore, appears to mainly renew heath that is still open, moving it from the fallow stage (SJ2) back to intact heath (SJ1), with our analysis suggesting it rarely reopens overgrown heath. This is consistent with the small area of SJ3-like heath that increased in AE-SJ score within a burn ([Section 3.6](#sec-clearance)). 
 ```{r tbl-fire-type}
 #| label: tbl-fire-type
 #| tbl-cap: "Burns 2018-2025 by provisional type. Burnt area and share of site are medians across burns. The condition before and after the burn is the share of the burnt area in each SJ-like class in the year before and the year after the burn, weighted by area. The effect is the mean change in score of burnt relative to never-burnt pixels in the same site (year before the burn = 0), as a percentage of the SJ1-SJ2 step, with its 95 % confidence interval; burns in 2025 are not included."
@@ -1212,7 +1212,7 @@ labels, _ = burn_patches(cand, cand & (dnbr_corr >= 0.20))    # >= 4 core pixels
 
 :::
 
-## Scrub and tree clearance, including spruce {#sec-clearance}
+## 3.6 Scrub and tree clearance, including spruce {#sec-clearance}
 
 `r fmt(key$clear_sites)` sites on an *opening* trajectory contain pixels that moved from overgrown (SJ3/SJ4-like) to open (SJ1/SJ2-like) condition, totalling `r fmt(key$clear_ha, 1)` ha (@tbl-clearance). This is deliberately conservative: it includes only sites where both the site-level trend and the pixel transitions indicate opening. Further pixel transitions on `r fmt(sum(sites$ha_sj34_12 > 0, na.rm = TRUE) - key$clear_sites)` sites without an *opening* trend are not included (see below). Most of the area (`r fmt(key$clear_sj3_ha, 1)` ha) started in SJ3-like (scrub-like) pixels, and `r fmt(key$clear_sj4_ha, 1)` ha in SJ4-like or spruce pixels (tree-like), of which `r fmt(key$spruce_ha, 1)` ha was in the spruce mask. These are modelled transitions, not measured areas of scrub or tree removal. Only `r fmt(key$clear_fire_ha, 1)` ha coincides with a mapped burn: scrub inside any burn, and trees only inside probable wildfires (`r fmt(key$clear_tree_fire_ha, 1)` ha). Of the burn-coincident area, `r fmt(key$clear_fire_rx_ha, 1)` ha lies on `r fmt(key$clear_fire_rx_sites)` sites burnt only in the lyngbrenning season and `r fmt(key$clear_fire_wf_ha, 1)` ha on `r fmt(key$clear_fire_wf_sites)` sites with a summer fire`r if (key$clear_fire_wf_both) ". The sites with a summer fire were also burnt in spring in another year, so their area cannot be assigned to one fire type" else ""`.
 
@@ -1316,7 +1316,7 @@ row["n_SJ34_to_SJ12_picea"]     = int(np.sum(sj34_to_sj12 & picea_mask))   # spr
 
 :::
 
-## Loss to development
+## 3.7 Loss to development
 
 `r fmt(key$dev_ha, 1)` ha of mapped kystlynghei on `r fmt(key$dev_sites)` sites was converted to built land between 2018 and 2025 (@fig-dev). The area is small compared with the area affected by overgrowth, but the change was persistent throughout the monitoring period. `r pct(key$dev_top3_share, 0)` of the loss is in `r key$dev_top3`. The annual rate rose from about `r fmt(key$dev_18_20, 1)` ha per year in 2018-2020 to `r fmt(key$dev_21_25, 1)` ha per year in 2021-2025.
 
@@ -1348,7 +1348,7 @@ dev |>
   theme(legend.position = "right")
 ```
 
-## Interactive map of all sites {#sec-webmap}
+## 3.8 Interactive map of all sites {#sec-webmap}
 
 The map shows every mapped kystlynghei site as a point on aerial imagery. Use the layer menu (top right) to choose what the sites show:
 
@@ -1358,9 +1358,9 @@ The map shows every mapped kystlynghei site as a point on aerial imagery. Use th
 - **Spruce removal:** the same, for spruce.
 - **Loss to development:** sites with heath converted to built land, sized by the area lost and coloured by the year with the most loss.
 - **Field condition:** the *tilstand* assessment.
-- **Priority sites:** the two priorities for targeting measures suggested in the discussion (@sec-discussion): sites in poor condition (*dårlig*, *svært redusert*) where at least half the site is still open heath (SJ1/SJ2-like in 2024-2025), and sites in good or moderate condition with a *succession* trajectory.
+- **Priority sites:** the two priorities for targeting measures suggested in the discussion ([Section 4](#sec-discussion)): sites in poor condition (*dårlig*, *svært redusert*) where at least half the site is still open heath (SJ1/SJ2-like in 2024-2025), and sites in good or moderate condition with a *succession* trajectory.
 
-In the trajectory and priority layers, the transparency of a site shows the confidence in its trend (@sec-uncertainty): solid sites have high confidence, half-transparent sites medium and nearly transparent sites low confidence. The site details give the 90 % interval of the trend.
+In the trajectory and priority layers, the transparency of a site shows the confidence in its trend ([Section 3.2.1](#sec-uncertainty)): solid sites have high confidence, half-transparent sites medium and nearly transparent sites low confidence. The site details give the 90 % interval of the trend.
 
 
 ```{r webmap}
@@ -1700,9 +1700,9 @@ htmltools::tags$iframe(
 )
 ```
 
-# Discussion {#sec-discussion}
+# 4. Discussion {#sec-discussion}
 
-## Main findings in relation to the action plan
+## 4.1 Main findings in relation to the action plan
 
 The action plan for coastal heathland 2023-2037 aims to improve the national condition of kystlynghei so that it can be moved from endangered (EN) to near threatened (NT) on the Norwegian Red List by 2037 [@kystlynghei_handlingsplan]. It names three measures for achieving this: burning, grazing and clearance. Measured against that goal:
 
@@ -1710,19 +1710,19 @@ The action plan for coastal heathland 2023-2037 aims to improve the national con
 - **The gap between good and poor sites is widening.** Sites already in good condition are the most likely to be opening up, and sites already in poor condition are more likely to be overgrowing further. This is consistent with management continuing where it is easiest or already established, whilst the sites abandoned for longest keep closing up.
 - **Detected management is small relative to the problem.** Clearance was detected on `r fmt(key$clear_sites)` *opening* sites (`r fmt(key$clear_ha, 0)` ha) and burns on `r fmt(key$fire_sites)` sites (`r fmt(key$fire_ha)` ha), against `r fmt(key$n_succ)` sites that are undergoing *succession*.
 
-If these patterns continue, the national condition of kystlynghei will decline rather than improve, and the goal of the action plan will not be reached. We suggest two priorities for targeting measures: sites in poor condition that still have open heath to protect, and sites in good or moderate condition that have begun to overgrow. We have identified these two groups in the web map (@sec-webmap), where `r fmt(sum(sites$priority == "Poor condition, open heath remaining", na.rm = TRUE))` are sites given a condition score of *dårlig* or *svært redusert* during their MI survey, but where at least half the site is still open heath, and `r fmt(sum(sites$priority == "Good/moderate condition, overgrowing", na.rm = TRUE))` are sites given good or moderate condition scores but with a *succession* trajectory. Both groups are shown in the web map (@sec-webmap) and flagged in the site shapefiles. Of the overgrowing group, `r fmt(key$prio_overgr_high)` sites have high confidence of at least a moderate *succession* trend and `r fmt(key$prio_overgr_dir)` have a clear direction of change (high or medium confidence); these are the most secure targets. The confidence is shown with the priority flag in the web map and the shapefiles.
+If these patterns continue, the national condition of kystlynghei will decline rather than improve, and the goal of the action plan will not be reached. We suggest two priorities for targeting measures: sites in poor condition that still have open heath to protect, and sites in good or moderate condition that have begun to overgrow. We have identified these two groups in the web map ([Section 3.8](#sec-webmap)), where `r fmt(sum(sites$priority == "Poor condition, open heath remaining", na.rm = TRUE))` are sites given a condition score of *dårlig* or *svært redusert* during their MI survey, but where at least half the site is still open heath, and `r fmt(sum(sites$priority == "Good/moderate condition, overgrowing", na.rm = TRUE))` are sites given good or moderate condition scores but with a *succession* trajectory. Both groups are shown in the web map ([Section 3.8](#sec-webmap)) and flagged in the site shapefiles. Of the overgrowing group, `r fmt(key$prio_overgr_high)` sites have high confidence of at least a moderate *succession* trend and `r fmt(key$prio_overgr_dir)` have a clear direction of change (high or medium confidence); these are the most secure targets. The confidence is shown with the priority flag in the web map and the shapefiles.
 
 
-## Model Limitations
+## 4.2 Model limitations
 
 Three limitations affect the trajectory results:
 
-- **Year effects.** Year-to-year shifts in the score shared by a whole county reach `r step12(key$ye_max)` of the SJ1-SJ2 step, of the same order as the moderate threshold (50 %). They are visible in every class, including sites with no strong signal, so they reflect weather, snow, the timing of the growing season and differences between embedding years rather than necessarily ecological change. They are removed county by county before the trends are fitted (@sec-uncertainty). Local weather within a county is not removed and remains part of the uncertainty of each trend.
+- **Year effects.** Year-to-year shifts in the score shared by a whole county reach `r step12(key$ye_max)` of the SJ1-SJ2 step, of the same order as the moderate threshold (50 %). They are visible in every class, including sites with no strong signal, so they reflect weather, snow, the timing of the growing season and differences between embedding years rather than necessarily ecological change. They are removed county by county before the trends are fitted ([Section 3.2.1](#sec-uncertainty)). Local weather within a county is not removed and remains part of the uncertainty of each trend.
 - **Few years.** Eight annual values are few for detecting slow change. Classifications of individual sites close to the moderate threshold are uncertain.
 - **Adjacent classes.** The model separates SJ1 from SJ4 almost perfectly but SJ2 from SJ3 much less well. Much of the clearance signal lies precisely at this boundary.
 
 
-## Burns {#sec-disc-burns}
+## 4.3 Burns {#sec-disc-burns}
 
 **The effect of burning.** Burnt heath became clearly more open than the unburnt heath in the same site, by `r step12(key$eff_rx1)` of the distance between the typical SJ2 and SJ1 score in the first year after a prescribed burn, increasing to about `r step12(key$eff_rx4)` after four years, with a similar response after the summer fires. This is of the same order as the response measured in registered *naturtiltak* burns ([Methods appendix, Section 11.4]({{< meta methods-url >}}#section-11-4)). Both spring and summer fires burnt mostly heath that was still open, and moved it from SJ2-like towards SJ1-like condition. AE-SJ scores are consistent with the intended management effect, i.e. prescribed burning opening up heathland that is starting to overgrow, but they also indicate that burning is mostly applied to heath that is still open rather than to heath that is already overgrown.
 
@@ -1733,17 +1733,17 @@ Three limitations affect the trajectory results:
 
 **Burning versus clearance of scrub and trees.** Prescribed burning is applied to heath that is still open, as the registered *naturtiltak* burns confirm, and it does not remove spruce. Felling, however, produces the same drop in the burn ratio as burning, so the method cannot separate the two where they happen at the same site in the same year. This is common, because measures are often combined. Tree and spruce conversion is therefore counted as clearance inside prescribed burns, and as coinciding with the burn only inside probable wildfires, which can kill trees (`r fmt(key$clear_tree_fire_ha, 1)` ha); SJ3 scrub conversion inside any burn is reported only as *coinciding with a burn* (`r fmt(key$fire_sj34_rx_ha, 1)` ha on sites burnt only in the lyngbrenning season and `r fmt(key$fire_sj34_wf_ha, 1)` ha on sites with a summer fire). 
 
-## Clearance and spruce
+## 4.4 Clearance and spruce
 
-The clearance result is more robust in aggregate than for single sites. It also includes an unknown share of small prescribed burns that FIRMS did not detect (@sec-clearance), so it should be read as the area opened by clearance or by small burns, not by clearance alone. Most of the cleared area is concentrated on relatively few sites, and many sites register only a few pixels. Reporting should use a minimum area (for example 0.1 ha), giving `r fmt(key$clear_ge01)` sites rather than `r fmt(key$clear_sites)`. Against registered *naturtiltak* clearance, the method detected most registered tree clearance and a majority of scrub clearance ([Methods appendix, Section 11.3]({{< meta methods-url >}}#section-11-3)).
-## Grazing
+The clearance result is more robust in aggregate than for single sites. It also includes an unknown share of small prescribed burns that FIRMS did not detect ([Section 3.6](#sec-clearance)), so it should be read as the area opened by clearance or by small burns, not by clearance alone. Most of the cleared area is concentrated on relatively few sites, and many sites register only a few pixels. Reporting should use a minimum area (for example 0.1 ha), giving `r fmt(key$clear_ge01)` sites rather than `r fmt(key$clear_sites)`. Against registered *naturtiltak* clearance, the method detected most registered tree clearance and a majority of scrub clearance ([Methods appendix, Section 11.3]({{< meta methods-url >}}#section-11-3)).
+## 4.5 Grazing
 
 Sites with field evidence of grazing had slightly less negative AE-SJ trends than sites without such evidence, but this observational association is confounded by field condition. A better test requires grazing data that are independent of the condition assessment, such as livestock registers or grazing subsidy data. Grazing is also the measure where the score is least informative. Heavy grazing pushes heath towards grassland rather than woodland, a trajectory the succession score does not measure.
-## Loss to development
+## 4.6 Loss to development
 
 The area lost to development is small compared with the area affected by overgrowth, but unlike overgrowth it cannot be reversed by management, which Naturindeks also highlights as a lasting pressure on open lowland [@nater2025]. The development result rests on Dynamic World [@brown2022], a global land-cover classification at 10 m resolution, and should be read as an indication of where heath has been built on rather than an exact area. Counting only conversions that persisted removes single-year misclassifications, but persistent errors remain possible: bare rock, gravel, roads and recently disturbed ground can be classed as built, particularly on the rocky outer coast where much kystlynghei lies. Conversely, buildings, tracks and cabins smaller than a pixel are easily missed, and the area of a larger conversion depends on how mixed pixels at its edge are classed. Sites with detected development were excluded from the trajectory analysis, so these errors do not affect the trajectory results. Checking the converted sites against orthophotos or building and road registers would show how much of the mapped loss is real development and how much it underestimates small-scale loss.
 
-# Development needs and next steps
+# 5. Development needs and next steps
 
 The following steps are proposed for 2027:
 
@@ -1756,7 +1756,7 @@ The following steps are proposed for 2027:
 7. **Separate heather from grass dominance** with Sentinel-2 red-edge and moisture indices, and add grazing data that are independent of the condition assessment.
 8. **Update annually.** The model is fixed, so each new year of AlphaEarth data can be scored without recalibration. It also allows the effect of the most recent burns on succession to be measured.
 
-# Data and code availability
+# 6. Data and code availability
 
 All results are produced by the analysis pipeline in the project repository (`kystlynghei-condition`). Site-level results are distributed as a table and as point and polygon layers (`outputs/unified_site_summary/`). The site table behind this report and its web map is written to `report/data/kystlynghei_site_results_2018_2025.csv` when the report is rendered. AlphaEarth embeddings, Sentinel-2 imagery, NASA FIRMS fire detections and Dynamic World are publicly available.
 
